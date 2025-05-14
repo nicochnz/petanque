@@ -6,6 +6,7 @@ const TerrainSchema = new mongoose.Schema({
   location: {
     lat: Number,
     lng: Number,
+    address: String,
   },
   createdAt: {
     type: Date,
