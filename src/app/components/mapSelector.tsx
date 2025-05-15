@@ -1,8 +1,7 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
-import { useState } from 'react';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useMapSelector } from '../hooks/useMapSelector';
 
 type MapSelectorProps = {
   terrains: Array<{
@@ -11,40 +10,12 @@ type MapSelectorProps = {
     name?: string;
     description?: string;
   }>;
-  onSelectPosition: (pos: { lat: number; lng: number }) => void;
+  onSelectPosition: (pos: { lat: number; lng: number; address?: string }) => void;
 };
 
 const MapSelector = ({ terrains, onSelectPosition }: MapSelectorProps) => {
-  const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(null);
-
-  const createNewMarkerIcon = () => {
-    return L.divIcon({
-      html: '📌',
-      className: 'custom-div-icon',
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-    });
-  };
-
-  const createTerrainIcon = () => {
-    return L.divIcon({
-      html: '📍',
-      className: 'custom-div-icon',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-    });
-  };
-
-  const MapClickHandler = () => {
-    useMapEvents({
-      click(e) {
-        const { lat, lng } = e.latlng;
-        setMarker({ lat, lng });
-        onSelectPosition({ lat, lng });
-      },
-    });
-    return null;
-  };
+  const { marker, MapClickHandler, createNewMarkerIcon, createTerrainIcon } = 
+    useMapSelector({ terrains, onSelectPosition });
 
   return (
     <MapContainer
