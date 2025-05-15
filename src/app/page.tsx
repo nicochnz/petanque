@@ -147,7 +147,7 @@ export default function HomePage() {
 
         <article className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {terrains.map(terrain => (
-            <div key={terrain._id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-amber-500">
+            <div key={terrain._id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ">
               <h2 className="text-xl font-semibold mb-2 text-amber-900">{terrain.name}</h2>
               <p className="mb-4 text-gray-700">{terrain.description}</p>
               <p className="text-sm text-amber-600">
