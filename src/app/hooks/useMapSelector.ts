@@ -50,7 +50,23 @@ export const useMapSelector = ({ onSelectPosition, terrains }: UseMapSelectorPro
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fr`
           );
           const data = await response.json();
-          const address = data.display_name || "Adresse inconnue";
+          
+          const addressParts = [];
+          if (data.address) {
+            if (data.address.road) {
+              addressParts.push(data.address.road);
+            }
+            if (data.address.city) {
+              addressParts.push(data.address.city);
+            }
+            if (data.address.postcode) {
+              addressParts.push(data.address.postcode);
+            }
+          }
+          
+          const address = addressParts.length > 0 
+            ? addressParts.join(', ')
+            : "Adresse inconnue";
           
           onSelectPosition({ lat, lng, address });
         } catch (error) {

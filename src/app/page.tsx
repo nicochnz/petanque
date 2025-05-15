@@ -74,12 +74,11 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#FDF6E3]">
-      <div className="relative bg-gradient-to-b from-amber-900/90 to-amber-800/90 py-12 mb-8">
+      <header className="relative bg-gradient-to-b from-amber-900/90 to-amber-800/90 py-12 mb-8">
         <div 
           className="absolute inset-0 opacity-60 bg-cover bg-center z-0"
           style={{
             backgroundImage: "url('/pastis-pattern.png')",
-            backgroundRepeat: 'repeat',
           }}
         />
         <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -90,9 +89,9 @@ export default function HomePage() {
             &quot;Tu tires ou tu pointes ?&quot;
           </p>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 pb-8">
+      <section className="max-w-7xl mx-auto px-4 pb-8">
         <div className="h-[600px] mb-8 rounded-xl overflow-hidden shadow-2xl relative">
           <MapSelector
             terrains={terrains.map(t => ({
@@ -105,7 +104,7 @@ export default function HomePage() {
         </div>
 
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+          <aside className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <h2 className="text-2xl font-bold mb-4 text-amber-900">Ajouter un terrain</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,10 +142,10 @@ export default function HomePage() {
                 </div>
               </form>
             </div>
-          </div>
+          </aside>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {terrains.map(terrain => (
             <div key={terrain._id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-amber-500">
               <h2 className="text-xl font-semibold mb-2 text-amber-900">{terrain.name}</h2>
@@ -156,8 +155,8 @@ export default function HomePage() {
               </p>
             </div>
           ))}
-        </div>
-      </div>
+        </article>
+      </section>
     </main>
   );
 }
