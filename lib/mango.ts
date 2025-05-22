@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Terrain from '../models/Terrain';
 const MONGODB_URI = process.env.MONGODB_URI!;
 
 if (!MONGODB_URI) {
