@@ -8,6 +8,7 @@ const TerrainSchema = new mongoose.Schema({
     lng: Number,
     address: String,
   },
+  imageUrl: String,
   createdAt: {
     type: Date,
     default: Date.now,
