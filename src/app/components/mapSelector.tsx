@@ -13,16 +13,21 @@ type MapSelectorProps = {
     imageUrl?: string;
   }>;
   onSelectPosition: (pos: { lat: number; lng: number; address?: string }) => void;
+  focusedTerrain?: { lat: number; lng: number } | null;
 };
 
-const MapSelectorComponent = ({ terrains, onSelectPosition }: MapSelectorProps) => {
+const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: MapSelectorProps) => {
   const { marker, MapClickHandler, createNewMarkerIcon, createTerrainIcon } = 
-    useMapSelector({ terrains, onSelectPosition });
+    useMapSelector({ terrains, onSelectPosition, focusedTerrain });
+
   return (
     <MapContainer
       center={[44.8378, -0.5792]} 
       zoom={13}
       style={{ height: '100%', width: '100%' }}
+      whenReady={(map) => {
+        (window as any).map = map.target;
+      }}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <MapClickHandler />
