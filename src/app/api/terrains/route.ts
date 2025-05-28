@@ -13,7 +13,6 @@ export async function GET() {
 export async function POST(req: Request) {
   await connectToDatabase();
 
-  // Vérifie si c'est un formData (multipart)
   const contentType = req.headers.get('content-type') || '';
   if (contentType.includes('multipart/form-data')) {
     const formData = await req.formData();
@@ -28,31 +27,26 @@ export async function POST(req: Request) {
     const file = formData.get('image') as File | null;
 
     if (file && file.size > 0) {
-      // Crée le dossier uploads si besoin
       const uploadDir = path.join(process.cwd(), 'public', 'uploads');
       await mkdir(uploadDir, { recursive: true });
 
-      // Génère un nom de fichier unique
       const ext = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
       const filePath = path.join(uploadDir, fileName);
 
-      // Lis le buffer du fichier
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      // Sauvegarde le fichier
       await writeFile(filePath, buffer);
-
       imageUrl = `/uploads/${fileName}`;
     }
 
-    // Sauvegarde en base
     const newTerrain = await Terrain.create({
       name,
       description,
       location: { lat, lng, address },
       imageUrl,
+      rating: { average: 0, count: 0, total: 0 }
     });
 
     return NextResponse.json(newTerrain);

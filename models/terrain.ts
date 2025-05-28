@@ -9,6 +9,11 @@ const TerrainSchema = new mongoose.Schema({
     address: String,
   },
   imageUrl: String,
+  rating: {
+    average: { type: Number, default: 0 },
+    count: { type: Number, default: 0 },
+    total: { type: Number, default: 0 }
+  },
   createdAt: {
     type: Date,
     default: Date.now,
