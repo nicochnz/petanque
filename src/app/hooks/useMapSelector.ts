@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
+import { useMapEvents } from 'react-leaflet';
 
 type UseMapSelectorProps = {
   terrains: Array<{
@@ -44,34 +45,38 @@ export function useMapSelector({ terrains, onSelectPosition, focusedTerrain }: U
   }, [focusedTerrain]);
 
   const MapClickHandler = () => {
-    useEffect(() => {
-      const map = (window as any).map;
-      if (!map) return;
-
-      const handleClick = async (e: L.LeafletMouseEvent) => {
+    useMapEvents({
+      async click(e: { latlng: { lat: number; lng: number } }) {
         const { lat, lng } = e.latlng;
         setMarker({ lat, lng });
-
+        
         try {
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fr`
           );
           const data = await response.json();
-          const address = data.display_name || '';
           
+          const addressParts = [];
+          if (data.address) {
+            if (data.address.road) {
+              addressParts.push(data.address.road);
+            }
+            if (data.address.city) {
+              addressParts.push(data.address.city);
+            }
+            if (data.address.postcode) {
+              addressParts.push(data.address.postcode);
+            }
+          }
+          
+          const address = addressParts.join(', ');
           onSelectPosition({ lat, lng, address });
         } catch (error) {
           console.error('Erreur géocodage:', error);
           onSelectPosition({ lat, lng });
         }
-      };
-
-      map.on('click', handleClick);
-
-      return () => {
-        map.off('click', handleClick);
-      };
-    }, []);
+      }
+    });
 
     return null;
   };
