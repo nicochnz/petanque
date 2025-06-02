@@ -1,11 +1,19 @@
 'use client';
 
 import { useHomePage } from './hooks/useHomePage';
-import MapSelector from './components/mapSelector';
+import dynamic from 'next/dynamic';
 import StarRating from './components/starRating';
 import FilterPanel from './components/filterPanel';
 import Image from 'next/image';
 import { useState } from 'react';
+
+const MapSelectorComponent = dynamic(
+  () => import('./components/mapSelector'),
+  { 
+    ssr: false,
+    loading: () => <div className="h-full w-full flex items-center justify-center">Chargement de la carte...</div>
+  }
+);
 
 export default function HomePage() {
   const { 
@@ -27,7 +35,7 @@ export default function HomePage() {
 
   const [focusedTerrain, setFocusedTerrain] = useState<{ lat: number; lng: number } | null>(null);
 
-  const handleTerrainClick = (terrain: any) => {
+  const handleTerrainClick = (terrain: { location: { lat: number; lng: number } }) => {
     setFocusedTerrain({
       lat: terrain.location.lat,
       lng: terrain.location.lng
@@ -91,7 +99,7 @@ export default function HomePage() {
           </div>
           
           <div className="h-[500px] rounded-2xl overflow-hidden shadow-xl border-2 border-amber-100">
-            <MapSelector
+            <MapSelectorComponent
               terrains={terrains.map(t => ({
                 ...t.location,
                 name: t.name,
