@@ -6,7 +6,11 @@ type FilterPanelProps = {
     maxDistance: number;
     userLocation: { lat: number; lng: number } | null;
   };
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange: (filters: {
+    minRating: number;
+    maxDistance: number;
+    userLocation: { lat: number; lng: number } | null;
+  }) => void;
   onGetLocation: () => void;
   onClose: () => void;
   totalResults: number;

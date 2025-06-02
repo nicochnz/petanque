@@ -3,6 +3,9 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useMapSelector } from '../hooks/useMapSelector';
 import Image from 'next/image';
+import { Map } from 'leaflet';
+import { useMap } from 'react-leaflet';
+import React from 'react';
 
 type MapSelectorProps = {
   terrains: Array<{
@@ -16,21 +19,32 @@ type MapSelectorProps = {
   focusedTerrain?: { lat: number; lng: number } | null;
 };
 
+// Composant pour accéder à la map
+const MapReady = () => {
+  const map = useMap();
+  
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as typeof window & { map?: Map }).map = map;
+    }
+  }, [map]);
+  
+  return null;
+};
+
 const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: MapSelectorProps) => {
   const { marker, MapClickHandler, createNewMarkerIcon, createTerrainIcon } = 
-    useMapSelector({ terrains, onSelectPosition, focusedTerrain });
+    useMapSelector({ onSelectPosition, focusedTerrain });
 
   return (
     <MapContainer
       center={[44.8378, -0.5792]} 
       zoom={13}
       style={{ height: '100%', width: '100%' }}
-      whenReady={(map) => {
-        (window as any).map = map.target;
-      }}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <MapClickHandler />
+      <MapReady />
       
       {marker && (
         <Marker position={[marker.lat, marker.lng]} icon={createNewMarkerIcon()} />

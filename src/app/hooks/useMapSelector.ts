@@ -3,18 +3,23 @@ import L from 'leaflet';
 import { useMapEvents } from 'react-leaflet';
 
 type UseMapSelectorProps = {
-  terrains: Array<{
-    lat: number;
-    lng: number;
-    name?: string;
-    description?: string;
-    imageUrl?: string;
-  }>;
   onSelectPosition: (pos: { lat: number; lng: number; address?: string }) => void;
   focusedTerrain?: { lat: number; lng: number } | null;
 };
 
-export function useMapSelector({ terrains, onSelectPosition, focusedTerrain }: UseMapSelectorProps) {
+// Type pour l'adresse de géocodage
+interface NominatimAddress {
+  road?: string;
+  city?: string;
+  postcode?: string;
+  [key: string]: string | undefined;
+}
+
+interface NominatimResponse {
+  address?: NominatimAddress;
+}
+
+export function useMapSelector({ onSelectPosition, focusedTerrain }: UseMapSelectorProps) {
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(null);
 
   const createNewMarkerIcon = () => {
@@ -36,9 +41,9 @@ export function useMapSelector({ terrains, onSelectPosition, focusedTerrain }: U
   };
 
   useEffect(() => {
-    if (focusedTerrain && (window as any).map) {
-      const map = (window as any).map;
-      map.flyTo([focusedTerrain.lat, focusedTerrain.lng], 15, {
+    if (typeof window !== 'undefined' && focusedTerrain && (window as typeof window & { map?: L.Map }).map) {
+      const map = (window as typeof window & { map?: L.Map }).map;
+      map?.flyTo([focusedTerrain.lat, focusedTerrain.lng], 15, {
         duration: 1.5
       });
     }
@@ -46,7 +51,7 @@ export function useMapSelector({ terrains, onSelectPosition, focusedTerrain }: U
 
   const MapClickHandler = () => {
     useMapEvents({
-      async click(e: { latlng: { lat: number; lng: number } }) {
+      async click(e: L.LeafletMouseEvent) {
         const { lat, lng } = e.latlng;
         setMarker({ lat, lng });
         
@@ -54,9 +59,9 @@ export function useMapSelector({ terrains, onSelectPosition, focusedTerrain }: U
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fr`
           );
-          const data = await response.json();
+          const data: NominatimResponse = await response.json();
           
-          const addressParts = [];
+          const addressParts: string[] = [];
           if (data.address) {
             if (data.address.road) {
               addressParts.push(data.address.road);
