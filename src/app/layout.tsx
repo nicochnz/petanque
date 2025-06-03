@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import 'leaflet/dist/leaflet.css';
-
-
+import SessionWrapper from './components/SessionWrapper';
 
 export const metadata: Metadata = {
   title: "Petanque",
@@ -17,12 +16,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
-    <html lang="en">
-    
-      <body
-      >
-        {children}
+    <html lang="fr">
+      <body>
+        <SessionWrapper>{children}</SessionWrapper>
       </body>
     </html>
   );

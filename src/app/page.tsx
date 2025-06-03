@@ -5,7 +5,9 @@ import dynamic from 'next/dynamic';
 import StarRating from './components/starRating';
 import FilterPanel from './components/filterPanel';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const MapSelectorComponent = dynamic(
   () => import('./components/mapSelector'),
@@ -16,6 +18,8 @@ const MapSelectorComponent = dynamic(
 );
 
 export default function HomePage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { 
     terrains, 
     allTerrains,
@@ -35,6 +39,14 @@ export default function HomePage() {
 
   const [focusedTerrain, setFocusedTerrain] = useState<{ lat: number; lng: number } | null>(null);
 
+  useEffect(() => {
+    if (status !== 'loading' && !session) {
+      router.push('/login');
+    }
+  }, [session, status, router]);
+
+  const isGuest = session?.user?.role === 'guest';
+
   const handleTerrainClick = (terrain: { location: { lat: number; lng: number } }) => {
     setFocusedTerrain({
       lat: terrain.location.lat,
@@ -47,8 +59,43 @@ export default function HomePage() {
     }
   };
 
+  const handleMapClickWithPermission = (pos: { lat: number; lng: number; address?: string }) => {
+    if (!isGuest) {
+      handleMapClick(pos);
+    }
+  };
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="text-xl text-amber-900">Chargement...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="text-xl text-amber-900">Redirection...</div>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-stone-50">
+      <div className="bg-amber-900 text-white px-4 py-2 flex justify-between items-center">
+        <span className="text-sm">
+          Connecté en tant que: {session?.user?.name || 'Invité'}
+          {isGuest && <span className="text-amber-200 ml-2">(Mode consultation)</span>}
+        </span>
+        <button
+          onClick={() => signOut()}
+          className="bg-amber-800 hover:bg-amber-700 px-3 py-1 rounded text-sm transition-colors cursor-pointer"
+        >
+          Se déconnecter
+        </button>
+      </div>
+
       <header className="relative h-96 overflow-hidden">
         <Image
           src="/pastis-pattern.png"
@@ -83,12 +130,28 @@ export default function HomePage() {
         </div>
       </section>
 
+      {isGuest && (
+        <section className="max-w-7xl mx-auto px-4 pb-4">
+          <div className="bg-yellow-100 border border-yellow-300 rounded-2xl p-4 text-center">
+            <p className="text-yellow-800">
+              <span className="font-semibold">Mode consultation :</span> Vous pouvez explorer les terrains mais pas en ajouter de nouveaux. 
+              Connectez-vous avec Google pour contribuer à la communauté !
+            </p>
+          </div>
+        </section>
+      )}
+
       <section className="max-w-7xl mx-auto px-4 pb-8" data-map-section>
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-amber-200 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-amber-900 mb-2">Carte interactive</h2>
-              <p className="text-gray-600">Cliquez sur la carte pour ajouter un nouveau terrain</p>
+              <p className="text-gray-600">
+                {isGuest 
+                  ? "Explorez les terrains existants" 
+                  : "Cliquez sur la carte pour ajouter un nouveau terrain"
+                }
+              </p>
             </div>
             <button
               onClick={() => setShowFilters(true)}
@@ -106,7 +169,7 @@ export default function HomePage() {
                 description: t.description,
                 imageUrl: t.imageUrl,
               }))}
-              onSelectPosition={handleMapClick}
+              onSelectPosition={handleMapClickWithPermission}
               focusedTerrain={focusedTerrain}
             />
           </div>
@@ -146,7 +209,7 @@ export default function HomePage() {
                     <StarRating
                       rating={terrain.rating?.average || 0}
                       count={terrain.rating?.count || 0}
-                      onRate={(rating) => handleRating(terrain._id!, rating)}
+                      onRate={isGuest ? undefined : (rating) => handleRating(terrain._id!, rating)}
                       size="sm"
                     />
                   </div>
@@ -156,7 +219,6 @@ export default function HomePage() {
                       <span className="mr-2">📍</span>
                       {terrain.location.address || `${terrain.location.lat}, ${terrain.location.lng}`}
                     </div>
-                   
                   </div>
                 </div>
               </article>
@@ -165,7 +227,7 @@ export default function HomePage() {
         </section>
       </section>
 
-      {showForm && (
+      {showForm && !isGuest && (
         <aside className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-amber-200 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6 text-amber-900">Nouveau terrain</h2>
