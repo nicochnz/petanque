@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 const TerrainSchema = new mongoose.Schema({
-  name: String,
-  description: String,
+  name: { type: String, required: true },
+  description: { type: String, required: true },
   location: {
-    lat: Number,
-    lng: Number,
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
     address: String,
   },
   imageUrl: String,
@@ -14,6 +14,7 @@ const TerrainSchema = new mongoose.Schema({
     count: { type: Number, default: 0 },
     total: { type: Number, default: 0 }
   },
+  createdBy: { type: String, required: true }, // ID de l'utilisateur
   createdAt: {
     type: Date,
     default: Date.now,
