@@ -6,19 +6,16 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-// Interface pour le cache mongoose
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }
 
-// Étendre le type global pour inclure notre cache
 declare global {
   // eslint-disable-next-line no-var
   var mongoose: MongooseCache | undefined;
 }
 
-// Initialiser le cache
 const cached: MongooseCache = globalThis.mongoose ?? { conn: null, promise: null };
 
 if (!globalThis.mongoose) {
