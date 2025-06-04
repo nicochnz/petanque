@@ -134,7 +134,7 @@ export default function HomePage() {
         <section className="max-w-7xl mx-auto px-4 pb-4">
           <div className="bg-yellow-100 border border-yellow-300 rounded-2xl p-4 text-center">
             <p className="text-yellow-800">
-              <span className="font-semibold">Mode consultation :</span> Vous pouvez explorer les terrains mais pas en ajouter de nouveaux. 
+              <span className="font-semibold">Mode consultation :</span> Vous pouvez explorer les terrains mais pas en ajouter de nouveaux ni mettre de note. 
               Connectez-vous avec Google pour contribuer à la communauté !
             </p>
           </div>
@@ -323,7 +323,7 @@ export default function HomePage() {
           </div>
           
           <div className="border-t border-amber-700 mt-8 pt-8 text-center text-amber-200">
-            <p>&copy; 2024 Terrains de Pétanque - Fait avec ❤️ pour la communauté</p>
+            <p>&copy; 2025 Terrains de Pétanque - Fait avec ❤️ pour la communauté</p>
           </div>
         </div>
       </footer>
