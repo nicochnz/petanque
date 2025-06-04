@@ -7,7 +7,7 @@ import { rateLimiters, getRateLimitIdentifier } from '../../../../../../lib/rate
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
   
@@ -17,6 +17,8 @@ export async function POST(
       { status: 401 }
     );
   }
+
+  const { id: terrainId } = context.params;
 
   // Rate limiting pour les notations
   const identifier = getRateLimitIdentifier(req, session.user.id);
@@ -42,7 +44,8 @@ export async function POST(
 
   await connectToDatabase();
   
-  const terrain = await Terrain.findById(params.id);
+  // Vérifier si l'utilisateur a déjà noté ce terrain
+  const terrain = await Terrain.findById(terrainId);
   if (!terrain) {
     return NextResponse.json(
       { error: 'Terrain non trouvé' },
@@ -50,7 +53,28 @@ export async function POST(
     );
   }
 
-  // Mettre à jour la note
+  // Vérifier si l'utilisateur a déjà noté ce terrain
+  const hasRated = terrain.ratings?.some(r => r.userId === session.user.id);
+  if (hasRated) {
+    return NextResponse.json(
+      { error: 'Vous avez déjà noté ce terrain' },
+      { status: 400 }
+    );
+  }
+
+  // Initialiser le tableau ratings s'il n'existe pas
+  if (!terrain.ratings) {
+    terrain.ratings = [];
+  }
+
+  // Ajouter la note de l'utilisateur
+  terrain.ratings.push({
+    userId: session.user.id,
+    rating: rating,
+    createdAt: new Date()
+  });
+
+  // Mettre à jour les statistiques de notation
   terrain.rating.total += rating;
   terrain.rating.count += 1;
   terrain.rating.average = terrain.rating.total / terrain.rating.count;
@@ -62,4 +86,4 @@ export async function POST(
     newRating: terrain.rating,
     remaining: remaining 
   });
-} 
+}
