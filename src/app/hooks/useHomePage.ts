@@ -148,11 +148,11 @@ export function useHomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating })
       });
-
+  
       if (res.ok) {
-        const updatedTerrain = await res.json();
+        const { newRating } = await res.json();
         setTerrains(prev => 
-          prev.map(t => t._id === terrainId ? updatedTerrain : t)
+          prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
         );
       }
     } catch (error) {
