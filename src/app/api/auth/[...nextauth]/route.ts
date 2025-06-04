@@ -1,8 +1,34 @@
-import NextAuth from 'next-auth'
+import NextAuth from 'next-auth/next'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import type { Session } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 
-export const authOptions = {
+// Étendre les types de session
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      role: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    }
+  }
+
+  interface User {
+    role?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: string;
+    sub?: string;
+  }
+}
+
+const handler = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -24,14 +50,18 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session, token: JWT }) {
       if (session?.user) {
         session.user.id = token.sub!
-        session.user.role = token.role as string || 'user'
+        session.user.role = token.role || 'user'
       }
       return session
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: { 
+      token: JWT, 
+      user: { role?: string } | null, 
+      account: { provider?: string } | null 
+    }) {
       if (user) {
         token.role = user.role || (account?.provider === 'guest' ? 'guest' : 'user')
       }
@@ -41,8 +71,6 @@ export const authOptions = {
   session: {
     strategy: 'jwt',
   },
-}
-
-const handler = NextAuth(authOptions)
+})
 
 export { handler as GET, handler as POST }

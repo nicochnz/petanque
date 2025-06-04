@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+// types/next-auth.d.ts
 
 declare module 'next-auth' {
   interface Session {
@@ -20,4 +20,4 @@ declare module 'next-auth/jwt' {
   interface JWT {
     role?: string
   }
-} 
+}
