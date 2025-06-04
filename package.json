@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.9.1",
+    "@upstash/ratelimit": "^2.0.5",
+    "@upstash/redis": "^1.35.0",
     "leaflet": "^1.9.4",
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.2",

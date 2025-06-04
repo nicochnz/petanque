@@ -3,10 +3,22 @@ import Terrain from '../../../../models/terrain';
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
+import { rateLimiters, getRateLimitIdentifier } from '../../../../lib/rateLimit';
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Rate limiting pour les requêtes GET
+  const identifier = getRateLimitIdentifier(req);
+  const { success } = await rateLimiters.general.limit(identifier);
+  
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Trop de requêtes. Veuillez patienter.' },
+      { status: 429 }
+    );
+  }
+
   await connectToDatabase();
   const terrains = await Terrain.find({}).lean();
   return NextResponse.json(terrains);
@@ -16,7 +28,7 @@ export async function POST(req: Request) {
   // VALIDATION SERVEUR : Vérifier l'authentification avec getServerSession
   const session = await getServerSession(authOptions);
   
-  if (!session || !session.user) {
+  if (!session?.user) {
     return NextResponse.json(
       { error: 'Non autorisé - Connexion requise' }, 
       { status: 401 }
@@ -28,6 +40,27 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: 'Non autorisé - Les invités ne peuvent pas ajouter de terrains' }, 
       { status: 403 }
+    );
+  }
+
+  // Rate limiting pour l'ajout de terrains
+  const identifier = getRateLimitIdentifier(req, session.user.id);
+  const { success, limit, reset, remaining } = await rateLimiters.addTerrain.limit(identifier);
+  
+  if (!success) {
+    return NextResponse.json(
+      { 
+        error: `Limite d'ajout de terrains atteinte (${limit} par heure). Réessayez dans ${Math.round((reset - Date.now()) / 1000 / 60)} minutes.`,
+        retryAfter: reset 
+      },
+      { 
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': remaining.toString(),
+          'X-RateLimit-Reset': reset.toString(),
+        }
+      }
     );
   }
 
