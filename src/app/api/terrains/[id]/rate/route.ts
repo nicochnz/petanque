@@ -18,7 +18,7 @@ export async function POST(
     );
   }
 
-  const { id: terrainId } = context.params;
+  const { id:terrainId } = context.params;
 
   // Rate limiting pour les notations
   const identifier = getRateLimitIdentifier(req, session.user.id);
