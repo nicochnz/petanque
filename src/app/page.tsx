@@ -23,6 +23,7 @@ export default function HomePage() {
   const { 
     terrains, 
     allTerrains,
+    displayedTerrains,
     showForm, 
     showFilters,
     filters,
@@ -86,16 +87,36 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-stone-50">
       <div className="bg-amber-900 text-white px-4 py-2 flex justify-between items-center">
-        <span className="text-sm">
-          Connecté en tant que: {session?.user?.name || 'Invité'}
-          {isGuest && <span className="text-amber-200 ml-2">(Mode consultation)</span>}
-        </span>
-        <button
-          onClick={() => signOut()}
-          className="bg-amber-800 hover:bg-amber-700 px-3 py-1 rounded text-sm transition-colors cursor-pointer"
-        >
-          Se déconnecter
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-amber-200">
+            <Image
+              src={session?.user?.image || '/default-avatar.jpg'}
+              alt="Photo de profil"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <span className="text-sm">
+            {session?.user?.name || 'Invité'}
+            {isGuest && <span className="text-amber-200 ml-2">(Mode consultation)</span>}
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          {!isGuest && (
+            <button
+              onClick={() => router.push('/profile')}
+              className="bg-amber-800 hover:bg-amber-700 px-3 py-1 rounded text-sm transition-colors cursor-pointer"
+            >
+              Mon Profil
+            </button>
+          )}
+          <button
+            onClick={() => signOut()}
+            className="bg-amber-800 hover:bg-amber-700 px-3 py-1 rounded text-sm transition-colors cursor-pointer"
+          >
+            Se déconnecter
+          </button>
+        </div>
       </div>
 
       <header className="relative h-96 overflow-hidden">
@@ -165,7 +186,7 @@ export default function HomePage() {
           
           <div className="h-[500px] rounded-2xl overflow-hidden shadow-xl border-2 border-amber-100">
             <MapSelectorComponent
-              terrains={terrains.map(t => ({
+              terrains={displayedTerrains.map(t => ({
                 ...t.location,
                 name: t.name,
                 description: t.description,
@@ -179,13 +200,13 @@ export default function HomePage() {
 
         <section>
           <h2 className="text-3xl font-bold text-amber-900 mb-8 text-center">
-            {terrains.length === allTerrains.length 
+            {displayedTerrains.length === allTerrains.length 
               ? 'Tous les terrains' 
-              : `${terrains.length} terrain${terrains.length > 1 ? 's' : ''} trouvé${terrains.length > 1 ? 's' : ''}`
+              : `${displayedTerrains.length} terrain${displayedTerrains.length > 1 ? 's' : ''} trouvé${displayedTerrains.length > 1 ? 's' : ''}`
             }
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {terrains.map(terrain => (
+            {displayedTerrains.map(terrain => (
               <article 
                 key={terrain._id} 
                 className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-amber-200 hover:-translate-y-1 cursor-pointer"

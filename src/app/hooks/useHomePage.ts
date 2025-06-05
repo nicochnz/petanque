@@ -161,8 +161,14 @@ export function useHomePage() {
       });
   
       if (res.ok) {
-        const { newRating } = await res.json();
+        const { rating: newRating } = await res.json();
         setTerrains(prev => 
+          prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
+        );
+        setFilteredTerrains(prev => 
+          prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
+        );
+        setDisplayedTerrains(prev => 
           prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
         );
       }
@@ -208,6 +214,7 @@ export function useHomePage() {
   return {
     terrains: displayedTerrains,
     allTerrains: terrains,
+    displayedTerrains,
     showForm,
     showFilters,
     filters,

@@ -1,11 +1,12 @@
-import { connectToDatabase } from '../../../../lib/mango';
-import Terrain from '../../../../models/terrain';
+import { connectToDatabase } from '@/lib/mango';
+import Terrain from '@/models/terrain';
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { rateLimiters, getRateLimitIdentifier } from '../../../../lib/rateLimit';
+import { rateLimiters, getRateLimitIdentifier } from '@/lib/rateLimit';
+import type { Session } from 'next-auth';
 
 export async function GET(req: Request) {
   const identifier = getRateLimitIdentifier(req);
@@ -24,9 +25,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as Session | null;
   
-  if (!session?.user) {
+  if (!session?.user?.email) {
     return NextResponse.json(
       { error: 'Non autorisé - Connexion requise' }, 
       { status: 401 }
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const identifier = getRateLimitIdentifier(req, session.user.id);
+  const identifier = getRateLimitIdentifier(req, session.user.email);
   const { success, limit, reset, remaining } = await rateLimiters.addTerrain.limit(identifier);
   
   if (!success) {
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
       location: { lat, lng, address },
       imageUrl,
       rating: { average: 0, count: 0, total: 0 },
-      createdBy: session.user.id, 
+      createdBy: session.user.email,
       createdAt: new Date()
     });
 
@@ -136,7 +137,7 @@ export async function POST(req: Request) {
 
     const newTerrain = await Terrain.create({
       ...data,
-      createdBy: session.user.id,
+      createdBy: session.user.email,
       createdAt: new Date()
     });
     
