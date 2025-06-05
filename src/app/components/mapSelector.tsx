@@ -19,7 +19,6 @@ type MapSelectorProps = {
   focusedTerrain?: { lat: number; lng: number } | null;
 };
 
-// Composant pour accéder à la map
 const MapReady = () => {
   const map = useMap();
   
@@ -47,7 +46,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           setUserLocation([latitude, longitude]);
           setIsLocating(false);
           
-          // Centrer la carte sur la position de l'utilisateur
           if (mapRef.current) {
             mapRef.current.setView([latitude, longitude], 15);
           }
@@ -150,6 +148,38 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Bouton de retour à la position */}
+      {userLocation && (
+        <button
+          onClick={() => {
+            if (mapRef.current && userLocation) {
+              mapRef.current.setView(userLocation, 15);
+            }
+          }}
+          className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-[1000] border border-amber-200 cursor-pointer"
+          title="Retour à ma position"
+        >
+          <svg 
+            viewBox="0 0 24 24" 
+            className="w-6 h-6 text-amber-600"
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+        </button>
+      )}
     </div>
   );
 };

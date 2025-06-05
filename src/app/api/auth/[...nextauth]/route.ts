@@ -4,7 +4,6 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import type { Session } from 'next-auth'
 import type { JWT } from 'next-auth/jwt'
 
-// Étendre les types de session
 declare module "next-auth" {
   interface Session {
     user: {

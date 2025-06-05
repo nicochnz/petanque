@@ -35,6 +35,8 @@ export default function HomePage() {
     handleMapClick,
     handleRating,
     getUserLocation,
+    loadMoreTerrains,
+    hasMoreTerrains,
   } = useHomePage();
 
   const [focusedTerrain, setFocusedTerrain] = useState<{ lat: number; lng: number } | null>(null);
@@ -224,6 +226,30 @@ export default function HomePage() {
               </article>
             ))}
           </div>
+
+          {hasMoreTerrains && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={loadMoreTerrains}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-full font-semibold hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 cursor-pointer"
+              >
+                <span>Voir plus de terrains</span>
+                <svg 
+                  className="w-5 h-5 ml-2" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
         </section>
       </section>
 

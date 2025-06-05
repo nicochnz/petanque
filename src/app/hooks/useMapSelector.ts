@@ -7,7 +7,6 @@ type UseMapSelectorProps = {
   focusedTerrain?: { lat: number; lng: number } | null;
 };
 
-// Type pour l'adresse de géocodage
 interface NominatimAddress {
   road?: string;
   city?: string;
