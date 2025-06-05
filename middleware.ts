@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server'
 import { rateLimiters, getRateLimitIdentifier } from './lib/rateLimit'
 
 export async function middleware(request: NextRequest) {
-  // Rate limiting global pour toutes les routes API
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const identifier = getRateLimitIdentifier(request)
     const { success } = await rateLimiters.general.limit(identifier)
@@ -16,8 +15,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Pour l'instant, on laisse passer toutes les requêtes
-  // Le contrôle d'accès se fera côté client
   return NextResponse.next()
 }
 

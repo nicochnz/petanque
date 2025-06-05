@@ -26,6 +26,9 @@ type Filters = {
 export function useHomePage() {
   const [terrains, setTerrains] = useState<Terrain[]>([]);
   const [filteredTerrains, setFilteredTerrains] = useState<Terrain[]>([]);
+  const [displayedTerrains, setDisplayedTerrains] = useState<Terrain[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const terrainsPerPage = 5;
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Filters>({
@@ -64,18 +67,15 @@ export function useHomePage() {
     return R * c;
   };
 
-  // Appliquer les filtres
   useEffect(() => {
     let filtered = [...terrains];
 
-    // Filtre par notation
     if (filters.minRating > 0) {
       filtered = filtered.filter(terrain => 
         (terrain.rating?.average || 0) >= filters.minRating
       );
     }
 
-    // Filtre par distance
     if (filters.userLocation && filters.maxDistance < 50) {
       filtered = filtered.filter(terrain => {
         const distance = calculateDistance(
@@ -89,7 +89,18 @@ export function useHomePage() {
     }
 
     setFilteredTerrains(filtered);
+    setCurrentPage(1);
   }, [terrains, filters]);
+
+  useEffect(() => {
+    const startIndex = 0;
+    const endIndex = currentPage * terrainsPerPage;
+    setDisplayedTerrains(filteredTerrains.slice(startIndex, endIndex));
+  }, [filteredTerrains, currentPage]);
+
+  const loadMoreTerrains = () => {
+    setCurrentPage(prev => prev + 1);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.target.type === 'file') {
@@ -185,7 +196,6 @@ export function useHomePage() {
       lng: terrain.location.lng
     });
     
-    // Scroll vers la carte
     const mapSection = document.querySelector('[data-map-section]');
     if (mapSection) {
       mapSection.scrollIntoView({ 
@@ -196,7 +206,7 @@ export function useHomePage() {
   };
 
   return {
-    terrains: filteredTerrains,
+    terrains: displayedTerrains,
     allTerrains: terrains,
     showForm,
     showFilters,
@@ -212,5 +222,7 @@ export function useHomePage() {
     getUserLocation,
     focusedTerrain,
     handleTerrainClick,
+    loadMoreTerrains,
+    hasMoreTerrains: displayedTerrains.length < filteredTerrains.length,
   };
 }

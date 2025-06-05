@@ -17,7 +17,7 @@ export async function requireAuth(req: Request) {
 export async function requireNonGuest(req: Request) {
   const session = await requireAuth(req);
   
-  if (session instanceof NextResponse) return session; // Erreur d'auth
+  if (session instanceof NextResponse) return session;
   
   if (session.user.role === 'guest') {
     return NextResponse.json(

@@ -8,7 +8,6 @@ import { authOptions } from '../auth/[...nextauth]/route';
 import { rateLimiters, getRateLimitIdentifier } from '../../../../lib/rateLimit';
 
 export async function GET(req: Request) {
-  // Rate limiting pour les requêtes GET
   const identifier = getRateLimitIdentifier(req);
   const { success } = await rateLimiters.general.limit(identifier);
   
@@ -25,7 +24,6 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  // VALIDATION SERVEUR : Vérifier l'authentification avec getServerSession
   const session = await getServerSession(authOptions);
   
   if (!session?.user) {
@@ -35,7 +33,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Vérifier que ce n'est pas un invité
   if (session.user.role === 'guest') {
     return NextResponse.json(
       { error: 'Non autorisé - Les invités ne peuvent pas ajouter de terrains' }, 
@@ -43,7 +40,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Rate limiting pour l'ajout de terrains
   const identifier = getRateLimitIdentifier(req, session.user.id);
   const { success, limit, reset, remaining } = await rateLimiters.addTerrain.limit(identifier);
   
@@ -76,7 +72,6 @@ export async function POST(req: Request) {
     const lng = parseFloat(formData.get('lng') as string);
     const address = formData.get('address') as string;
 
-    // Validation des données
     if (!name || !description || isNaN(lat) || isNaN(lng)) {
       return NextResponse.json(
         { error: 'Données manquantes ou invalides' }, 
@@ -88,8 +83,7 @@ export async function POST(req: Request) {
     const file = formData.get('image') as File | null;
 
     if (file && file.size > 0) {
-      // Validation du fichier (taille, type)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024; 
       if (file.size > maxSize) {
         return NextResponse.json(
           { error: 'Fichier trop volumineux (max 5MB)' }, 
@@ -125,7 +119,7 @@ export async function POST(req: Request) {
       location: { lat, lng, address },
       imageUrl,
       rating: { average: 0, count: 0, total: 0 },
-      createdBy: session.user.id, // Traçabilité
+      createdBy: session.user.id, 
       createdAt: new Date()
     });
 
@@ -133,7 +127,6 @@ export async function POST(req: Request) {
   } else {
     const data = await req.json();
     
-    // Validation des données JSON
     if (!data.name || !data.description || !data.location?.lat || !data.location?.lng) {
       return NextResponse.json(
         { error: 'Données manquantes ou invalides' }, 
