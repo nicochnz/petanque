@@ -33,10 +33,10 @@ export default function FilterPanel({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-amber-200 max-h-[90vh] overflow-y-auto">
+    <main className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <section className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-amber-200 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-amber-900">Filtres</h2>
+          <h1 className="text-2xl font-bold text-amber-900">Filtres</h1>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -118,7 +118,7 @@ export default function FilterPanel({
             Voir {totalResults} résultat{totalResults > 1 ? 's' : ''}
           </button>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

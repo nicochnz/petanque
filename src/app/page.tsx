@@ -131,7 +131,7 @@ export default function HomePage() {
         <div className="relative h-full flex items-center justify-center">
           <div className="text-center text-white px-4">
             <h1 className="text-4xl sm:text-6xl font-bold mb-4">
-              Terrains de Pétanque
+              Site de boules
             </h1>
             <p className="text-xl sm:text-2xl mb-4 italic text-amber-100">
               &quot;Tu tires ou tu pointes ?&quot;
@@ -190,7 +190,7 @@ export default function HomePage() {
                 ...t.location,
                 name: t.name,
                 description: t.description,
-                imageUrl: t.imageUrl,
+                imageUrl: t.imageUrl
               }))}
               onSelectPosition={handleMapClickWithPermission}
               focusedTerrain={focusedTerrain}
@@ -240,7 +240,9 @@ export default function HomePage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center text-sm text-amber-700 font-medium">
                       <span className="mr-2">📍</span>
-                      {terrain.location.address || `${terrain.location.lat}, ${terrain.location.lng}`}
+                      {terrain.location?.address || (terrain.location?.lat && terrain.location?.lng 
+                        ? `${terrain.location.lat}, ${terrain.location.lng}`
+                        : 'Adresse non disponible')}
                     </div>
                   </div>
                 </div>

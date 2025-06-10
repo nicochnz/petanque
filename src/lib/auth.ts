@@ -1,9 +1,10 @@
-import NextAuth from 'next-auth'
-import { NextAuthOptions } from 'next-auth'
+import NextAuth, { type NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { connectToDatabase } from './mango'
 import { User } from '@/models/user'
+import type { Session } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -27,7 +28,7 @@ const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }: { user: any, account: any }) {
       if (!user.email) return false
 
       try {
@@ -52,7 +53,7 @@ const authOptions: NextAuthOptions = {
         return false
       }
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session, token: JWT }) {
       if (session.user?.email) {
         try {
           await connectToDatabase()
@@ -75,7 +76,7 @@ const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT, user: any }) {
       if (user) {
         token.id = user.id
         token.role = user.role
@@ -91,7 +92,7 @@ const authOptions: NextAuthOptions = {
   },
 }
 
-const nextAuth = NextAuth(authOptions)
+const handler = NextAuth(authOptions)
 
-export const { handlers, auth, signIn, signOut } = nextAuth
-export default nextAuth
+export { handler as GET, handler as POST }
+export default authOptions
