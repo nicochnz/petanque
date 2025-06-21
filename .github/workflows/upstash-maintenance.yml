@@ -1,0 +1,41 @@
+name: Upstash Maintenance
+
+on:
+  schedule:
+    # Tous les jours à 2h du matin UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Permet de déclencher manuellement
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run Upstash maintenance
+        run: npm run maintenance:upstash
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          
+      - name: Notify success
+        if: success()
+        run: |
+          echo "✅ Upstash maintenance completed successfully"
+          echo "Timestamp: $(date -u)"
+          
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "❌ Upstash maintenance failed"
+          echo "Timestamp: $(date -u)" 
