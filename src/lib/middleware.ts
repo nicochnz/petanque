@@ -1,8 +1,10 @@
-import { auth } from './auth';
+import authOptions from './auth';
 import { NextResponse } from 'next/server';
+import type { Session } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 
-export async function requireAuth(req: Request) {
-  const session = await auth();
+export async function requireAuth(req: Request): Promise<Session | NextResponse> {
+  const session = await getServerSession(authOptions);
   
   if (!session || !session.user) {
     return NextResponse.json(
@@ -14,7 +16,7 @@ export async function requireAuth(req: Request) {
   return session;
 }
 
-export async function requireNonGuest(req: Request) {
+export async function requireNonGuest(req: Request): Promise<Session | NextResponse> {
   const session = await requireAuth(req);
   
   if (session instanceof NextResponse) return session;

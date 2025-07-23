@@ -1,0 +1,11 @@
+{
+  "env": {
+    "node": true,
+    "commonjs": true
+  },
+  "extends": [],
+  "rules": {
+    "@typescript-eslint/no-var-requires": "off",
+    "no-var": "off"
+  }
+} 

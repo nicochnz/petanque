@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { rateLimiters, getRateLimitIdentifier } from './lib/rateLimit'
+import { rateLimiters, getRateLimitIdentifier } from '@/lib/rateLimit'
 
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {

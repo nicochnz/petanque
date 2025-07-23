@@ -9,11 +9,12 @@ import React, { useEffect, useState } from 'react';
 
 type MapSelectorProps = {
   terrains: Array<{
-    lat: number;
-    lng: number;
     name?: string;
     description?: string;
     imageUrl?: string;
+    lat: number;
+    lng: number;
+    address?: string;
   }>;
   onSelectPosition: (pos: { lat: number; lng: number; address?: string }) => void;
   focusedTerrain?: { lat: number; lng: number } | null;
@@ -35,11 +36,14 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
   const { marker, MapClickHandler, createNewMarkerIcon, createTerrainIcon } = 
     useMapSelector({ onSelectPosition, focusedTerrain });
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const [isLocating, setIsLocating] = useState(true);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const mapRef = React.useRef<Map | null>(null);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
+      setIsLocating(true);
+      setLocationError(null);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -53,15 +57,28 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         (error) => {
           console.error("Erreur de géolocalisation:", error);
           setIsLocating(false);
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              setLocationError("L'accès à votre position a été refusé. Veuillez autoriser la géolocalisation dans les paramètres de votre navigateur.");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              setLocationError("Votre position n'a pas pu être déterminée.");
+              break;
+            case error.TIMEOUT:
+              setLocationError("La demande de géolocalisation a expiré.");
+              break;
+            default:
+              setLocationError("Une erreur inconnue s'est produite lors de la géolocalisation.");
+          }
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
+          timeout: 10000,
           maximumAge: 0
         }
       );
     } else {
-      setIsLocating(false);
+      setLocationError("La géolocalisation n'est pas supportée par votre navigateur.");
     }
   }, []);
 
@@ -87,6 +104,13 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
             <p className="text-amber-900 font-medium">Localisation en cours...</p>
           </div>
+        </div>
+      )}
+
+      {locationError && (
+        <div className="absolute top-4 left-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm z-50">
+          <p className="font-medium mb-1">⚠️ Impossible d'obtenir votre position</p>
+          <p>{locationError}</p>
         </div>
       )}
       
@@ -116,37 +140,46 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           <Marker position={[marker.lat, marker.lng]} icon={createNewMarkerIcon()} />
         )}
         
-        {terrains.map((terrain, index) => (
-          <Marker
-            key={index}
-            position={[terrain.lat, terrain.lng]}
-            icon={createTerrainIcon()}
-          >
-            {(terrain.name || terrain.description || terrain.imageUrl) && (
-              <Popup>
-                {terrain.imageUrl && (
-                  <div style={{ width: '100%', maxWidth: 250, marginBottom: 8 }}>
-                    <Image
-                      src={terrain.imageUrl}
-                      alt={terrain.name || 'Image du terrain'}
-                      width={250}
-                      height={150}
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                        maxHeight: 150,
-                        objectFit: 'cover',
-                        borderRadius: 8,
-                      }}
-                    />
-                  </div>
-                )}
-                {terrain.name && <h3 className="font-bold">{terrain.name}</h3>}
-                {terrain.description && <p>{terrain.description}</p>}
-              </Popup>
-            )}
-          </Marker>
-        ))}
+        {terrains.map((terrain, index) => {
+          // Vérifier si les coordonnées sont valides
+          if (typeof terrain.lat !== 'number' || typeof terrain.lng !== 'number' || 
+              isNaN(terrain.lat) || isNaN(terrain.lng)) {
+            console.warn('Coordonnées invalides pour le terrain:', terrain);
+            return null;
+          }
+          
+          return (
+            <Marker
+              key={index}
+              position={[terrain.lat, terrain.lng]}
+              icon={createTerrainIcon()}
+            >
+              {(terrain.name || terrain.description || terrain.imageUrl) && (
+                <Popup>
+                  {terrain.imageUrl && (
+                    <div style={{ width: '100%', maxWidth: 250, marginBottom: 8 }}>
+                      <Image
+                        src={terrain.imageUrl}
+                        alt={terrain.name || 'Image du terrain'}
+                        width={250}
+                        height={150}
+                        style={{
+                          width: '100%',
+                          height: 'auto',
+                          maxHeight: 150,
+                          objectFit: 'cover',
+                          borderRadius: 8,
+                        }}
+                      />
+                    </div>
+                  )}
+                  {terrain.name && <h3 className="font-bold">{terrain.name}</h3>}
+                  {terrain.description && <p>{terrain.description}</p>}
+                </Popup>
+              )}
+            </Marker>
+          );
+        })}
       </MapContainer>
 
       {/* Bouton de retour à la position */}

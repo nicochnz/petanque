@@ -6,12 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "maintenance:upstash": "node scripts/maintenance.js",
+    "maintenance:test": "node scripts/test-maintenance.js",
+    "maintenance:setup-cron": "./scripts/setup-cron.sh"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.9.1",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.35.0",
+    "dotenv": "^16.4.5",
     "leaflet": "^1.9.4",
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.2",

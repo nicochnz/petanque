@@ -45,6 +45,11 @@ export function useHomePage() {
     image: null as File | null,
   });
   const [focusedTerrain, setFocusedTerrain] = useState<{ lat: number; lng: number } | null>(null);
+  const [isRating, setIsRating] = useState(false);
+  const [displayedCount, setDisplayedCount] = useState(terrainsPerPage);
+  const [showAddTerrainModal, setShowAddTerrainModal] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/terrains')
@@ -93,13 +98,13 @@ export function useHomePage() {
   }, [terrains, filters]);
 
   useEffect(() => {
-    const startIndex = 0;
-    const endIndex = currentPage * terrainsPerPage;
-    setDisplayedTerrains(filteredTerrains.slice(startIndex, endIndex));
-  }, [filteredTerrains, currentPage]);
+    if (!isRating) {
+      setDisplayedTerrains(filteredTerrains.slice(0, displayedCount));
+    }
+  }, [filteredTerrains, displayedCount, isRating]);
 
   const loadMoreTerrains = () => {
-    setCurrentPage(prev => prev + 1);
+    setDisplayedCount(prev => prev + terrainsPerPage);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -154,6 +159,7 @@ export function useHomePage() {
 
   const handleRating = async (terrainId: string, rating: number) => {
     try {
+      setIsRating(true);
       const res = await fetch(`/api/terrains/${terrainId}/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -161,13 +167,27 @@ export function useHomePage() {
       });
   
       if (res.ok) {
-        const { newRating } = await res.json();
+        const { rating: newRating } = await res.json();
+        
+        // Mettre à jour les terrains de base
         setTerrains(prev => 
+          prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
+        );
+
+        // Mettre à jour les terrains filtrés
+        setFilteredTerrains(prev => 
+          prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
+        );
+
+        // Mettre à jour uniquement la note dans les terrains affichés
+        setDisplayedTerrains(prev => 
           prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
         );
       }
     } catch (error) {
       console.error('Erreur lors de la notation:', error);
+    } finally {
+      setIsRating(false);
     }
   };
 
@@ -205,9 +225,43 @@ export function useHomePage() {
     }
   };
 
+  const handleAddTerrain = async (formData: FormData) => {
+    try {
+      const response = await fetch('/api/terrains', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur lors de l\'ajout du terrain');
+      }
+
+      const newTerrain = await response.json();
+      
+      // Mettre à jour les terrains avec le nouveau terrain
+      setTerrains(prevTerrains => {
+        const updatedTerrains = [newTerrain, ...prevTerrains];
+        // Mettre à jour aussi les terrains filtrés
+        setFilteredTerrains(updatedTerrains);
+        // Mettre à jour les terrains affichés
+        setDisplayedTerrains(updatedTerrains.slice(0, displayedCount));
+        return updatedTerrains;
+      });
+
+      setShowAddTerrainModal(false);
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du terrain:', error);
+      setError(error instanceof Error ? error.message : 'Une erreur est survenue');
+    }
+  };
+
   return {
     terrains: displayedTerrains,
     allTerrains: terrains,
+    displayedTerrains,
     showForm,
     showFilters,
     filters,
@@ -223,6 +277,10 @@ export function useHomePage() {
     focusedTerrain,
     handleTerrainClick,
     loadMoreTerrains,
-    hasMoreTerrains: displayedTerrains.length < filteredTerrains.length,
+    hasMoreTerrains: displayedCount < filteredTerrains.length,
+    showAddTerrainModal,
+    showSuccessMessage,
+    error,
+    handleAddTerrain,
   };
 }
