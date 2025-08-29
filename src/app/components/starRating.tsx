@@ -21,7 +21,7 @@ export default function StarRating({ rating, count, onRate, readonly = false, si
 
   const StarIcon = ({ filled }: { filled: boolean }) => (
     <svg
-      className={`${sizeClasses[size]} ${filled ? 'text-amber-400' : 'text-gray-300'}`}
+      className={`${sizeClasses[size]} ${filled ? 'text-secondary' : 'text-light-dark'}`}
       fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -75,12 +75,12 @@ export default function StarRating({ rating, count, onRate, readonly = false, si
         {renderStars()}
       </div>
       {rating > 0 && (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-dark/70">
           {rating.toFixed(1)} {count !== undefined && `(${count} avis)`}
         </span>
       )}
       {!readonly && rating === 0 && (
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-dark/50">
           Soyez le premier à noter !
         </span>
       )}

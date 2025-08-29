@@ -5,7 +5,7 @@ import { useMapSelector } from '../hooks/useMapSelector';
 import Image from 'next/image';
 import L, { Map } from 'leaflet';
 import { useMap } from 'react-leaflet';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 type MapSelectorProps = {
   terrains: Array<{
@@ -38,12 +38,24 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
   const mapRef = React.useRef<Map | null>(null);
 
-  useEffect(() => {
+  // Position par défaut (Bordeaux)
+  const defaultPosition: [number, number] = [44.837789, -0.57918];
+
+  // Optimisation de la géolocalisation avec useCallback
+  const getUserLocation = useCallback(() => {
     if ("geolocation" in navigator) {
       setIsLocating(true);
       setLocationError(null);
+      
+      const options = {
+        enableHighAccuracy: false, // Désactivé pour un chargement plus rapide
+        timeout: 5000, // Réduit à 5 secondes
+        maximumAge: 300000 // 5 minutes de cache
+      };
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -57,29 +69,43 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         (error) => {
           console.error("Erreur de géolocalisation:", error);
           setIsLocating(false);
+          // En cas d'erreur, on utilise la position par défaut
+          setUserLocation(defaultPosition);
+          
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              setLocationError("L'accès à votre position a été refusé. Veuillez autoriser la géolocalisation dans les paramètres de votre navigateur.");
+              setLocationError("Géolocalisation refusée - Utilisation de Bordeaux par défaut");
               break;
             case error.POSITION_UNAVAILABLE:
-              setLocationError("Votre position n'a pas pu être déterminée.");
+              setLocationError("Position non disponible - Utilisation de Bordeaux par défaut");
               break;
             case error.TIMEOUT:
-              setLocationError("La demande de géolocalisation a expiré.");
+              setLocationError("Géolocalisation expirée - Utilisation de Bordeaux par défaut");
               break;
             default:
-              setLocationError("Une erreur inconnue s'est produite lors de la géolocalisation.");
+              setLocationError("Erreur de géolocalisation - Utilisation de Bordeaux par défaut");
           }
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
+        options
       );
     } else {
-      setLocationError("La géolocalisation n'est pas supportée par votre navigateur.");
+      setLocationError("Géolocalisation non supportée - Utilisation de Bordeaux par défaut");
+      setUserLocation(defaultPosition);
     }
+  }, []);
+
+  useEffect(() => {
+    // Délai pour permettre au composant de se monter
+    const timer = setTimeout(() => {
+      getUserLocation();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [getUserLocation]);
+
+  // Gestionnaire de chargement de la carte
+  const handleMapLoad = useCallback(() => {
+    setIsMapLoaded(true);
   }, []);
 
   const createUserLocationIcon = () => {
@@ -96,122 +122,127 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
     });
   };
 
+  // Position initiale de la carte
+  const initialPosition = userLocation || defaultPosition;
+
   return (
     <div className="relative h-full w-full">
-      {isLocating && (
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+      {/* Indicateur de chargement */}
+      {!isMapLoaded && (
+        <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
-            <p className="text-amber-900 font-medium">Localisation en cours...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-primary font-medium">Chargement de la carte...</p>
           </div>
         </div>
       )}
 
-      {locationError && (
-        <div className="absolute top-4 left-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm z-50">
-          <p className="font-medium mb-1">⚠️ Impossible d'obtenir votre position</p>
-          <p>{locationError}</p>
-        </div>
-      )}
-      
+      {/* Carte Leaflet optimisée */}
       <MapContainer
-        center={userLocation || [44.8378, -0.5792]}
-        zoom={userLocation ? 15 : 13}
-        style={{ height: '100%', width: '100%' }}
+        center={initialPosition}
+        zoom={13}
+        className="h-full w-full"
+        zoomControl={true}
+        attributionControl={false}
+        onLoad={handleMapLoad}
         ref={mapRef}
+        style={{ background: '#f8f9fa' }}
       >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MapClickHandler />
-        <MapReady />
-        
-        {/* Marqueur de position de l'utilisateur */}
+        {/* TileLayer optimisé avec cache */}
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={18}
+          minZoom={10}
+          maxNativeZoom={18}
+          updateWhenZooming={false}
+          updateWhenIdle={true}
+        />
+
+        {/* Marqueur de position utilisateur */}
         {userLocation && (
-          <Marker
-            position={userLocation}
-            icon={createUserLocationIcon()}
-          >
+          <Marker position={userLocation} icon={createUserLocationIcon()}>
             <Popup>
-              Votre position
+              <div className="text-center">
+                <p className="font-semibold">Votre position</p>
+                <p className="text-sm text-gray-600">Cliquez sur la carte pour ajouter un terrain</p>
+              </div>
             </Popup>
           </Marker>
         )}
-        
+
+        {/* Marqueurs des terrains existants */}
+        {terrains.map((terrain, index) => (
+          <Marker
+            key={`${terrain.lat}-${terrain.lng}-${index}`}
+            position={[terrain.lat, terrain.lng]}
+            icon={createTerrainIcon()}
+          >
+            <Popup>
+              <div className="text-center min-w-[200px]">
+                {terrain.imageUrl && (
+                  <div className="relative w-full h-24 mb-2 rounded overflow-hidden">
+                    <Image
+                      src={terrain.imageUrl}
+                      alt={terrain.name || 'Terrain'}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <h3 className="font-semibold text-lg mb-1">{terrain.name || 'Terrain'}</h3>
+                <p className="text-sm text-gray-600 mb-2">{terrain.description || 'Aucune description'}</p>
+                {terrain.address && (
+                  <p className="text-xs text-gray-500">📍 {terrain.address}</p>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* Marqueur temporaire pour nouveau terrain */}
         {marker && (
-          <Marker position={[marker.lat, marker.lng]} icon={createNewMarkerIcon()} />
+          <Marker
+            position={[marker.lat, marker.lng]}
+            icon={createNewMarkerIcon()}
+          >
+            <Popup>
+              <div className="text-center">
+                <p className="font-semibold text-green-600">Nouveau terrain</p>
+                <p className="text-sm text-gray-600">Cliquez pour confirmer l'emplacement</p>
+              </div>
+            </Popup>
+          </Marker>
         )}
-        
-        {terrains.map((terrain, index) => {
-          // Vérifier si les coordonnées sont valides
-          if (typeof terrain.lat !== 'number' || typeof terrain.lng !== 'number' || 
-              isNaN(terrain.lat) || isNaN(terrain.lng)) {
-            console.warn('Coordonnées invalides pour le terrain:', terrain);
-            return null;
-          }
-          
-          return (
-            <Marker
-              key={index}
-              position={[terrain.lat, terrain.lng]}
-              icon={createTerrainIcon()}
-            >
-              {(terrain.name || terrain.description || terrain.imageUrl) && (
-                <Popup>
-                  {terrain.imageUrl && (
-                    <div style={{ width: '100%', maxWidth: 250, marginBottom: 8 }}>
-                      <Image
-                        src={terrain.imageUrl}
-                        alt={terrain.name || 'Image du terrain'}
-                        width={250}
-                        height={150}
-                        style={{
-                          width: '100%',
-                          height: 'auto',
-                          maxHeight: 150,
-                          objectFit: 'cover',
-                          borderRadius: 8,
-                        }}
-                      />
-                    </div>
-                  )}
-                  {terrain.name && <h3 className="font-bold">{terrain.name}</h3>}
-                  {terrain.description && <p>{terrain.description}</p>}
-                </Popup>
-              )}
-            </Marker>
-          );
-        })}
+
+        {/* Gestionnaire de clic sur la carte */}
+        <MapClickHandler />
+
+        {/* Composant pour initialiser la carte */}
+        <MapReady />
       </MapContainer>
 
-      {/* Bouton de retour à la position */}
-      {userLocation && (
-        <button
-          onClick={() => {
-            if (mapRef.current && userLocation) {
-              mapRef.current.setView(userLocation, 15);
-            }
-          }}
-          className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-[1000] border border-amber-200 cursor-pointer"
-          title="Retour à ma position"
-        >
-          <svg 
-            viewBox="0 0 24 24" 
-            className="w-6 h-6 text-amber-600"
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-            />
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-            />
+      {/* Bouton de géolocalisation */}
+      <button
+        onClick={getUserLocation}
+        className="absolute top-4 right-4 bg-white p-2 rounded-lg shadow-lg hover:bg-gray-50 transition-colors z-20"
+        title="Ma position"
+      >
+        {isLocating ? (
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+        ) : (
+          <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-        </button>
+        )}
+      </button>
+
+      {/* Messages d'erreur */}
+      {locationError && (
+        <div className="absolute bottom-4 left-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-2 rounded-lg text-sm z-20">
+          {locationError}
+        </div>
       )}
     </div>
   );

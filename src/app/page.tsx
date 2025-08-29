@@ -13,7 +13,7 @@ const MapSelectorComponent = dynamic(
   () => import('./components/mapSelector'),
   { 
     ssr: false,
-    loading: () => <div className="h-full w-full flex items-center justify-center">Chargement de la carte...</div>
+    loading: () => <div className="h-full w-full flex items-center justify-center text-primary">Chargement de la carte...</div>
   }
 );
 
@@ -41,6 +41,7 @@ export default function HomePage() {
   } = useHomePage();
 
   const [focusedTerrain, setFocusedTerrain] = useState<{ lat: number; lng: number } | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (status !== 'loading' && !session) {
@@ -48,7 +49,7 @@ export default function HomePage() {
     }
   }, [session, status, router]);
 
-  const isGuest = session?.user?.role === 'guest';
+  const isGuest = session?.user && 'role' in session.user ? session.user.role === 'guest' : false;
 
   const handleTerrainClick = (terrain: { location: { lat: number; lng: number } }) => {
     setFocusedTerrain({
@@ -70,25 +71,26 @@ export default function HomePage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="text-xl text-amber-900">Chargement...</div>
+      <div className="min-h-screen flex items-center justify-center bg-light">
+        <div className="text-xl text-primary">Chargement...</div>
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="text-xl text-amber-900">Redirection...</div>
+      <div className="min-h-screen flex items-center justify-center bg-light">
+        <div className="text-xl text-primary">Redirection...</div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-stone-50">
-      <div className="bg-amber-900 text-white px-4 py-2 flex justify-between items-center">
+    <main className="min-h-screen bg-light">
+      {/* Header avec navigation mobile */}
+      <div className="bg-primary text-light px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-amber-200">
+          <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-light">
             <Image
               src={session?.user?.image || '/default-avatar.jpg'}
               alt="Photo de profil"
@@ -96,124 +98,202 @@ export default function HomePage() {
               className="object-cover"
             />
           </div>
-          <span className="text-sm">
+          <span className="text-sm hidden sm:block">
             {session?.user?.name || 'Invité'}
-            {isGuest && <span className="text-amber-200 ml-2">(Mode consultation)</span>}
+            {isGuest && <span className="text-light/80 ml-2">(Mode consultation)</span>}
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        
+        {/* Logo centré sur mobile */}
+        <div className="text-center flex-1 sm:flex-none">
+          <h1 className="text-lg font-serif font-bold sm:hidden">LE PÉTANQUE CLUB</h1>
+        </div>
+        
+        {/* Menu mobile */}
+        <div className="flex items-center gap-2">
           {!isGuest && (
             <button
               onClick={() => router.push('/profile')}
-              className="bg-amber-800 hover:bg-amber-700 px-3 py-1 rounded text-sm transition-colors cursor-pointer"
+              className="bg-primary-light hover:bg-primary-dark px-3 py-1 rounded text-sm transition-colors cursor-pointer hidden sm:block"
             >
               Mon Profil
             </button>
           )}
           <button
             onClick={() => signOut()}
-            className="bg-amber-800 hover:bg-amber-700 px-3 py-1 rounded text-sm transition-colors cursor-pointer"
+            className="bg-primary-light hover:bg-primary-dark px-3 py-1 rounded text-sm transition-colors cursor-pointer hidden sm:block"
           >
             Se déconnecter
+          </button>
+          
+          {/* Bouton menu mobile */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="sm:hidden p-2"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
         </div>
       </div>
 
-      <header className="relative h-96 overflow-hidden">
-        <Image
-          src="/pastis-pattern.png"
-          alt="Terrain de pétanque"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-900/70 via-orange-800/60 to-amber-900/70"></div>
-        <div className="relative h-full flex items-center justify-center">
-          <div className="text-center text-white px-4">
-            <h1 className="text-4xl sm:text-6xl font-bold mb-4">
-              Site de boules
-            </h1>
-            <p className="text-xl sm:text-2xl mb-4 italic text-amber-100">
-              &quot;Tu tires ou tu pointes ?&quot;
-            </p>
-            <p className="text-lg text-amber-50 max-w-2xl mx-auto leading-relaxed">
-              L&apos;application collaborative de la pétanque ! 
-              Découvrez et partagez les meilleurs terrains de pétanque près de chez vous.
-            </p>
+      {/* Menu mobile déroulant */}
+      {isMobileMenuOpen && (
+        <div className="bg-primary border-t border-primary-light sm:hidden">
+          <div className="px-4 py-3 space-y-3">
+            {!isGuest && (
+              <button
+                onClick={() => {
+                  router.push('/profile');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left text-light hover:text-light/80 transition-colors"
+              >
+                Mon Profil
+              </button>
+            )}
+            <button
+              onClick={() => {
+                signOut();
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-light hover:text-light/80 transition-colors"
+            >
+              Se déconnecter
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Section - Layout horizontal sur desktop, vertical sur mobile */}
+      <header className="bg-primary text-light">
+        <div className="w-full">
+          <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12 px-4 py-8">
+            {/* Image à gauche sur desktop, en haut sur mobile */}
+            <div className="lg:w-2/5 w-full">
+              <div className="relative h-80 sm:h-96 lg:h-[500px] w-full overflow-hidden">
+                <Image
+                  src="/ball_player.svg"
+                  alt="Joueur de pétanque"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+            
+            {/* Contenu à droite sur desktop, en bas sur mobile */}
+            <div className="lg:w-1/2 w-full text-center lg:text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-serif font-bold mb-4 sm:mb-6">
+                Bienvenue sur le <span className="uppercase">PÉTANQUE CLUB</span>
+              </h1>
+              <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 italic text-light/90">
+                &ldquo;Tu tires ou tu pointes ?&rdquo;
+              </p>
+              <p className="text-base sm:text-lg text-light/80 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                L&apos;application collaborative de la pétanque ! Découvrez et partagez les meilleurs terrains de pétanque près de chez vous. <span className="font-bold">Créez un compte</span> pour ajouter de nouveaux terrains.
+              </p>
+              
+              {/* Statistiques - SEULEMENT terrains référencés comme dans la maquette */}
+              <div className="flex justify-center lg:justify-start mb-8">
+                <div className="text-center lg:text-left">
+                  <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-secondary block">{allTerrains.length}</span>
+                  <span className="text-base sm:text-lg text-light/90">Terrains référencés</span>
+                </div>
+              </div>
+              
+              {/* Boutons empilés sur mobile, côte à côte sur desktop */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <button 
+                  onClick={() => {
+                    const mapSection = document.querySelector('[data-map-section]');
+                    if (mapSection) {
+                      mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }}
+                  className="btn-secondary w-full sm:w-auto"
+                >
+                  Trouver un terrain
+                </button>
+                <button className="btn-outline-light w-full sm:w-auto">
+                  Se connecter
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-center">
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 text-center border border-amber-200 shadow-lg">
-            <div className="text-4xl font-bold text-amber-700 mb-3">{allTerrains.length}</div>
-            <div className="text-gray-700 text-lg">Terrains référencés</div>
+      {/* Section Carte Interactive */}
+      <section className="bg-light py-12 sm:py-16" data-map-section>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-primary mb-4 uppercase">
+              La carte interactive.
+            </h2>
+            <div className="space-y-2 text-primary">
+              <p className="text-base sm:text-lg">Explorez les terrains existants, ajoutez les vôtres.</p>
+              {isGuest && (
+                <p className="text-sm sm:text-base">
+                  <span className="font-bold">MODE CONSULTATION :</span> Vous pouvez explorer les terrains mais pas en ajouter de nouveaux ni mettre de note.
+                </p>
+              )}
+              <p className="text-sm sm:text-base">Connectez-vous avec Google pour contribuer à la communauté !</p>
+            </div>
+          </div>
+
+          <div className="bg-surface rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-light-dark">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold text-primary mb-2">Carte interactive</h3>
+                <p className="text-dark/70 text-sm sm:text-base">
+                  {isGuest 
+                    ? "Explorez les terrains existants" 
+                    : "Cliquez sur la carte pour ajouter un nouveau terrain"
+                  }
+                </p>
+              </div>
+              <button
+                onClick={() => setShowFilters(true)}
+                className="btn-secondary w-full sm:w-auto"
+              >
+                🔍 Filtres ({terrains.length})
+              </button>
+            </div>
+            
+            <div className="h-64 sm:h-80 lg:h-[500px] rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-2 border-light-dark">
+              <MapSelectorComponent
+                terrains={displayedTerrains.map(t => ({
+                  ...t.location,
+                  name: t.name,
+                  description: t.description,
+                  imageUrl: t.imageUrl
+                }))}
+                onSelectPosition={handleMapClickWithPermission}
+                focusedTerrain={focusedTerrain}
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {isGuest && (
-        <section className="max-w-7xl mx-auto px-4 pb-4">
-          <div className="bg-yellow-100 border border-yellow-300 rounded-2xl p-4 text-center">
-            <p className="text-yellow-800">
-              <span className="font-semibold">Mode consultation :</span> Vous pouvez explorer les terrains mais pas en ajouter de nouveaux ni mettre de note. 
-              Connectez-vous avec Google pour contribuer à la communauté !
-            </p>
-          </div>
-        </section>
-      )}
-
-      <section className="max-w-7xl mx-auto px-4 pb-8" data-map-section>
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-amber-200 mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-amber-900 mb-2">Carte interactive</h2>
-              <p className="text-gray-600">
-                {isGuest 
-                  ? "Explorez les terrains existants" 
-                  : "Cliquez sur la carte pour ajouter un nouveau terrain"
-                }
-              </p>
-            </div>
-            <button
-              onClick={() => setShowFilters(true)}
-              className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 py-3 rounded-full font-semibold hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 cursor-pointer"
-            >
-              🔍 Filtrer ({terrains.length})
-            </button>
-          </div>
-          
-          <div className="h-[500px] rounded-2xl overflow-hidden shadow-xl border-2 border-amber-100">
-            <MapSelectorComponent
-              terrains={displayedTerrains.map(t => ({
-                ...t.location,
-                name: t.name,
-                description: t.description,
-                imageUrl: t.imageUrl
-              }))}
-              onSelectPosition={handleMapClickWithPermission}
-              focusedTerrain={focusedTerrain}
-            />
-          </div>
-        </div>
-
-        <section>
-          <h2 className="text-3xl font-bold text-amber-900 mb-8 text-center">
-            {displayedTerrains.length === allTerrains.length 
-              ? 'Tous les terrains' 
-              : `${displayedTerrains.length} terrain${displayedTerrains.length > 1 ? 's' : ''} trouvé${displayedTerrains.length > 1 ? 's' : ''}`
-            }
+      {/* Section Tous les Terrains - FOND BLANC avec cartes vertes */}
+      <section className="bg-light py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-primary mb-8 sm:mb-12 text-center uppercase">
+            Tous les terrains.
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {displayedTerrains.map(terrain => (
               <article 
                 key={terrain._id} 
-                className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-amber-200 hover:-translate-y-1 cursor-pointer"
+                className="bg-primary rounded-2xl shadow-lg border border-primary-dark group cursor-pointer hover:-translate-y-1 transition-transform duration-300 overflow-hidden"
                 onClick={() => handleTerrainClick(terrain)}
               >
                 {terrain.imageUrl && (
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-40 sm:h-48 overflow-hidden">
                     <Image 
                       src={terrain.imageUrl} 
                       alt={terrain.name} 
@@ -222,13 +302,13 @@ export default function HomePage() {
                     />
                   </div>
                 )}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-3 text-amber-900 group-hover:text-orange-600 transition-colors">
+                <div className="p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-light group-hover:text-secondary transition-colors">
                     {terrain.name}
                   </h3>
-                  <p className="mb-4 text-gray-600 leading-relaxed">{terrain.description}</p>
+                  <p className="mb-3 sm:mb-4 text-light/90 leading-relaxed text-sm sm:text-base">{terrain.description}</p>
                   
-                  <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="mb-3 sm:mb-4" onClick={(e) => e.stopPropagation()}>
                     <StarRating
                       rating={terrain.rating?.average || 0}
                       count={terrain.rating?.count || 0}
@@ -236,25 +316,16 @@ export default function HomePage() {
                       size="sm"
                     />
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-amber-700 font-medium">
-                      <span className="mr-2">📍</span>
-                      {terrain.location?.address || (terrain.location?.lat && terrain.location?.lng 
-                        ? `${terrain.location.lat}, ${terrain.location.lng}`
-                        : 'Adresse non disponible')}
-                    </div>
-                  </div>
                 </div>
               </article>
             ))}
           </div>
 
           {hasMoreTerrains && (
-            <div className="mt-8 text-center">
+            <div className="mt-8 sm:mt-12 text-center">
               <button
                 onClick={loadMoreTerrains}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-full font-semibold hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 cursor-pointer"
+                className="btn-secondary inline-flex items-center w-full sm:w-auto"
               >
                 <span>Voir plus de terrains</span>
                 <svg 
@@ -273,16 +344,17 @@ export default function HomePage() {
               </button>
             </div>
           )}
-        </section>
+        </div>
       </section>
 
+      {/* Modal d'ajout de terrain */}
       {showForm && !isGuest && (
-        <aside className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-amber-200 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-6 text-amber-900">Nouveau terrain</h2>
+        <aside className="fixed inset-0 bg-dark/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-surface rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-light-dark max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl sm:text-2xl font-bold mb-6 text-primary">Nouveau terrain</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Nom du terrain</label>
+                <label htmlFor="name" className="block text-sm font-medium text-dark mb-2">Nom du terrain</label>
                 <input
                   id="name"
                   type="text"
@@ -291,12 +363,12 @@ export default function HomePage() {
                   value={form.name}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors text-black"
+                  className="input-primary"
                 />
               </div>
               
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label htmlFor="description" className="block text-sm font-medium text-dark mb-2">Description</label>
                 <textarea
                   id="description"
                   name="description"
@@ -305,33 +377,33 @@ export default function HomePage() {
                   onChange={handleChange}
                   required
                   rows={3}
-                  className="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors resize-none text-black"
+                  className="input-primary resize-none"
                 />
               </div>
               
               <div>
-                <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">Photo (optionnelle)</label>
+                <label htmlFor="image" className="block text-sm font-medium text-dark mb-2">Photo (optionnelle)</label>
                 <input
                   id="image"
                   type="file"
                   name="image"
                   accept="image/*"
                   onChange={handleChange}
-                  className="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer"
+                  className="input-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-light file:text-primary hover:file:bg-light-dark cursor-pointer"
                 />
               </div>
               
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button 
                   type="submit" 
-                  className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
+                  className="btn-secondary flex-1"
                 >
                   Ajouter le terrain
                 </button>
                 <button 
                   type="button" 
                   onClick={() => setShowForm(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors cursor-pointer"
+                  className="btn-outline-primary flex-1"
                 >
                   Annuler
                 </button>
@@ -341,6 +413,7 @@ export default function HomePage() {
         </aside>
       )}
 
+      {/* Panel de filtres */}
       {showFilters && (
         <FilterPanel
           filters={filters}
@@ -351,27 +424,37 @@ export default function HomePage() {
         />
       )}
 
-      <footer className="bg-gradient-to-r from-amber-900 to-orange-900 text-white mt-16">
+      {/* Footer */}
+      <footer className="bg-primary text-light mt-16">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">Terrains de Pétanque</h3>
-              <p className="text-amber-100 leading-relaxed">
+              <h3 className="text-xl font-bold mb-4 uppercase">TERRAINS DE PÉTANQUE</h3>
+              <p className="text-light/90 leading-relaxed">
                 La communauté collaborative pour découvrir et partager les meilleurs terrains de pétanque.
               </p>
             </div>
             
             <div>
-              <h4 className="text-lg font-semibold mb-4">Participez</h4>
-              <ul className="space-y-2 text-amber-100">
-                <li>🎯 Ajoutez vos terrains favoris</li>
-                <li>📸 Partagez vos photos</li>
-                <li>🌟 Découvrez de nouveaux spots</li>
+              <h4 className="text-lg font-semibold mb-4 uppercase">À PROPOS</h4>
+              <ul className="space-y-2 text-light/90">
+                <li className="flex items-center gap-2">
+                  <span className="text-secondary">★</span>
+                  Qui sommes-nous ?
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-secondary">★</span>
+                  Contact
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-secondary">★</span>
+                  Mentions légales
+                </li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-amber-700 mt-8 pt-8 text-center text-amber-200">
+          <div className="border-t border-primary-light mt-8 pt-8 text-center text-light/70">
             <p>&copy; 2025 Terrains de Pétanque - Fait avec ❤️ pour la communauté</p>
           </div>
         </div>

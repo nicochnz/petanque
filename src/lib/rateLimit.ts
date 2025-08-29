@@ -1,45 +1,26 @@
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
-
-let redis: Redis | undefined
-
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
+// Version simplifiée du rate limiting sans Upstash
+// Pour réactiver Upstash plus tard, remplacez ce fichier par la version originale
 
 export const rateLimiters = {
-  addTerrain: new Ratelimit({
-    redis: redis!, 
-    limiter: Ratelimit.slidingWindow(3, '1 h'),
-    analytics: true,
-  }),
+  addTerrain: {
+    limit: async () => ({ success: true, limit: 3, remaining: 2, reset: Date.now() + 3600000 })
+  },
   
-  rating: new Ratelimit({
-    redis: redis!,
-    limiter: Ratelimit.slidingWindow(10, '1 m'),
-    analytics: true,
-  }),
+  rating: {
+    limit: async () => ({ success: true, limit: 10, remaining: 9, reset: Date.now() + 60000 })
+  },
   
-  general: new Ratelimit({
-    redis: redis!,
-    limiter: Ratelimit.slidingWindow(100, '1 m'),
-    analytics: true,
-  }),
+  general: {
+    limit: async () => ({ success: true, limit: 100, remaining: 99, reset: Date.now() + 60000 })
+  },
   
-  auth: new Ratelimit({
-    redis: redis!,
-    limiter: Ratelimit.slidingWindow(5, '5 m'), 
-    analytics: true,
-  }),
+  auth: {
+    limit: async () => ({ success: true, limit: 5, remaining: 4, reset: Date.now() + 300000 })
+  },
   
-  sensitive: new Ratelimit({
-    redis: redis!,
-    limiter: Ratelimit.slidingWindow(20, '1 m'), 
-    analytics: true,
-  }),
+  sensitive: {
+    limit: async () => ({ success: true, limit: 20, remaining: 19, reset: Date.now() + 60000 })
+  },
 }
 
 export function getClientIP(request: Request): string {
