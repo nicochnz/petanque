@@ -55,9 +55,22 @@ export function useMapSelector({ onSelectPosition, focusedTerrain }: UseMapSelec
         setMarker({ lat, lng });
         
         try {
+          // Ajouter un délai pour éviter les requêtes trop rapides
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fr`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fr&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'PetanqueApp/1.0'
+              }
+            }
           );
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
           const data: NominatimResponse = await response.json();
           
           const addressParts: string[] = [];
@@ -76,7 +89,8 @@ export function useMapSelector({ onSelectPosition, focusedTerrain }: UseMapSelec
           const address = addressParts.join(', ');
           onSelectPosition({ lat, lng, address });
         } catch (error) {
-          console.error('Erreur géocodage:', error);
+          console.warn('Erreur géocodage:', error);
+          // Continuer sans adresse en cas d'erreur
           onSelectPosition({ lat, lng });
         }
       }

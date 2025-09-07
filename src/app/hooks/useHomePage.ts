@@ -193,6 +193,12 @@ export function useHomePage() {
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 600000
+      };
+      
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setFilters(prev => ({
@@ -204,8 +210,10 @@ export function useHomePage() {
           }));
         },
         (error) => {
-          console.error('Erreur de géolocalisation:', error);
-        }
+          console.warn('Erreur de géolocalisation dans useHomePage:', error);
+          // Ne pas bloquer l'application en cas d'erreur
+        },
+        options
       );
     }
   };

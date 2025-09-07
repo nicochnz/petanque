@@ -33,7 +33,7 @@ export default function FilterPanel({
   };
 
   return (
-    <main className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <main className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
       <section className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-amber-200 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-amber-900">Filtres</h1>

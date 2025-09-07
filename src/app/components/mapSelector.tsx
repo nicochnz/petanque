@@ -20,14 +20,20 @@ type MapSelectorProps = {
   focusedTerrain?: { lat: number; lng: number } | null;
 };
 
-const MapReady = () => {
+const MapReady = ({ onMapLoad }: { onMapLoad: () => void }) => {
   const map = useMap();
   
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as typeof window & { map?: Map }).map = map;
+      
+      // S'assurer que la carte est interactive
+      map.whenReady(() => {
+        map.invalidateSize();
+        onMapLoad();
+      });
     }
-  }, [map]);
+  }, [map, onMapLoad]);
   
   return null;
 };
@@ -39,10 +45,9 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const mapRef = React.useRef<Map | null>(null);
 
   // Position par défaut (Bordeaux)
-  const defaultPosition: [number, number] = [44.837789, -0.57918];
+  const defaultPosition: [number, number] = React.useMemo(() => [44.837789, -0.57918], []);
 
   // Optimisation de la géolocalisation avec useCallback
   const getUserLocation = useCallback(() => {
@@ -51,9 +56,9 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
       setLocationError(null);
       
       const options = {
-        enableHighAccuracy: false, // Désactivé pour un chargement plus rapide
-        timeout: 5000, // Réduit à 5 secondes
-        maximumAge: 300000 // 5 minutes de cache
+        enableHighAccuracy: true, // Réactivé pour une meilleure précision
+        timeout: 10000, // Augmenté à 10 secondes
+        maximumAge: 600000 // 10 minutes de cache
       };
 
       navigator.geolocation.getCurrentPosition(
@@ -61,13 +66,16 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
           setIsLocating(false);
+          setLocationError(null);
           
-          if (mapRef.current) {
-            mapRef.current.setView([latitude, longitude], 15);
+          // Utiliser la référence de carte correcte
+          const map = (window as typeof window & { map?: Map }).map;
+          if (map) {
+            map.setView([latitude, longitude], 15);
           }
         },
         (error) => {
-          console.error("Erreur de géolocalisation:", error);
+          console.warn("Erreur de géolocalisation:", error);
           setIsLocating(false);
           // En cas d'erreur, on utilise la position par défaut
           setUserLocation(defaultPosition);
@@ -92,7 +100,7 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
       setLocationError("Géolocalisation non supportée - Utilisation de Bordeaux par défaut");
       setUserLocation(defaultPosition);
     }
-  }, []);
+  }, [defaultPosition]);
 
   useEffect(() => {
     // Délai pour permettre au composant de se monter
@@ -144,8 +152,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         className="h-full w-full"
         zoomControl={true}
         attributionControl={false}
-        onLoad={handleMapLoad}
-        ref={mapRef}
         style={{ background: '#f8f9fa' }}
       >
         {/* TileLayer optimisé avec cache */}
@@ -209,7 +215,7 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
             <Popup>
               <div className="text-center">
                 <p className="font-semibold text-green-600">Nouveau terrain</p>
-                <p className="text-sm text-gray-600">Cliquez pour confirmer l'emplacement</p>
+                <p className="text-sm text-gray-600">Cliquez pour confirmer l&apos;emplacement</p>
               </div>
             </Popup>
           </Marker>
@@ -219,7 +225,7 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         <MapClickHandler />
 
         {/* Composant pour initialiser la carte */}
-        <MapReady />
+        <MapReady onMapLoad={handleMapLoad} />
       </MapContainer>
 
       {/* Bouton de géolocalisation */}

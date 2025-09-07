@@ -349,7 +349,7 @@ export default function HomePage() {
 
       {/* Modal d'ajout de terrain */}
       {showForm && !isGuest && (
-        <aside className="fixed inset-0 bg-dark/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <aside className="fixed inset-0 bg-dark/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
           <div className="bg-surface rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-light-dark max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl sm:text-2xl font-bold mb-6 text-primary">Nouveau terrain</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
