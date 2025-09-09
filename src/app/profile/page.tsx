@@ -84,7 +84,6 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-light py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        {/* Bouton de retour */}
         <Link 
           href="/"
           className="inline-flex items-center mb-6 text-primary hover:text-primary-dark transition-colors"
@@ -102,12 +101,11 @@ export default function ProfilePage() {
               d="M10 19l-7-7m0 0l7-7m-7 7h18" 
             />
           </svg>
-          <span className="hidden sm:inline">Retour à l'accueil</span>
+          <span className="hidden sm:inline">Retour à l&apos;accueil</span>
           <span className="sm:hidden">Retour</span>
         </Link>
 
         <div className="card overflow-hidden">
-          {/* En-tête du profil */}
           <div className="relative h-32 sm:h-48 bg-gradient-to-r from-primary to-secondary">
             <div className="absolute -bottom-12 sm:-bottom-16 left-4 sm:left-8">
               <div className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-surface overflow-hidden bg-surface">
@@ -129,7 +127,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Informations du profil */}
           <div className="pt-16 sm:pt-20 pb-6 sm:pb-8 px-4 sm:px-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-dark mb-2">
               {session.user.name}
@@ -138,7 +135,6 @@ export default function ProfilePage() {
               {session.user.email}
             </p>
 
-            {/* Statistiques */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
               <div className="bg-light rounded-xl p-3 sm:p-4 text-center">
                 <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
@@ -166,7 +162,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Section des terrains récents */}
             <div className="bg-light rounded-xl p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold text-dark mb-4">
                 Terrains récemment ajoutés

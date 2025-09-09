@@ -87,7 +87,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-light">
-      {/* Header avec navigation mobile */}
       <div className="bg-primary text-light px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-light">
@@ -104,12 +103,10 @@ export default function HomePage() {
           </span>
         </div>
         
-        {/* Logo centré sur mobile */}
         <div className="text-center flex-1 sm:flex-none">
           <h1 className="text-lg font-serif font-bold sm:hidden">LE PÉTANQUE CLUB</h1>
         </div>
         
-        {/* Menu mobile */}
         <div className="flex items-center gap-2">
           {!isGuest && (
             <button
@@ -126,7 +123,6 @@ export default function HomePage() {
             Se déconnecter
           </button>
           
-          {/* Bouton menu mobile */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="sm:hidden p-2"
@@ -138,7 +134,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Menu mobile déroulant */}
       {isMobileMenuOpen && (
         <div className="bg-primary border-t border-primary-light sm:hidden">
           <div className="px-4 py-3 space-y-3">
@@ -166,11 +161,9 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Hero Section - Layout horizontal sur desktop, vertical sur mobile */}
       <header className="bg-primary text-light">
         <div className="w-full">
           <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12 px-4 py-8">
-            {/* Image à gauche sur desktop, en haut sur mobile */}
             <div className="lg:w-2/5 w-full">
               <div className="relative h-80 sm:h-96 lg:h-[500px] w-full overflow-hidden">
                 <Image
@@ -183,7 +176,6 @@ export default function HomePage() {
               </div>
             </div>
             
-            {/* Contenu à droite sur desktop, en bas sur mobile */}
             <div className="lg:w-1/2 w-full text-center lg:text-left">
               <h1 className="text-3xl sm:text-4xl lg:text-6xl font-serif font-bold mb-4 sm:mb-6">
                 Bienvenue sur le <span className="uppercase">PÉTANQUE CLUB</span>
@@ -195,7 +187,6 @@ export default function HomePage() {
                 L&apos;application collaborative de la pétanque ! Découvrez et partagez les meilleurs terrains de pétanque près de chez vous. <span className="font-bold">Créez un compte</span> pour ajouter de nouveaux terrains.
               </p>
               
-              {/* Statistiques - SEULEMENT terrains référencés comme dans la maquette */}
               <div className="flex justify-center lg:justify-start mb-8">
                 <div className="text-center lg:text-left">
                   <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-secondary block">{allTerrains.length}</span>
@@ -203,7 +194,6 @@ export default function HomePage() {
                 </div>
               </div>
               
-              {/* Boutons empilés sur mobile, côte à côte sur desktop */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <button 
                   onClick={() => {
@@ -225,7 +215,6 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Section Carte Interactive */}
       <section className="bg-light py-12 sm:py-16" data-map-section>
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-8 sm:mb-12">
@@ -278,7 +267,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section Tous les Terrains - FOND BLANC avec cartes vertes */}
       <section className="bg-light py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-primary mb-8 sm:mb-12 text-center uppercase">
@@ -347,7 +335,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Modal d'ajout de terrain */}
       {showForm && !isGuest && (
         <aside className="fixed inset-0 bg-dark/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
           <div className="bg-surface rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-light-dark max-h-[90vh] overflow-y-auto">
@@ -413,7 +400,6 @@ export default function HomePage() {
         </aside>
       )}
 
-      {/* Panel de filtres */}
       {showFilters && (
         <FilterPanel
           filters={filters}
@@ -424,7 +410,6 @@ export default function HomePage() {
         />
       )}
 
-      {/* Footer */}
       <footer className="bg-primary text-light mt-16">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

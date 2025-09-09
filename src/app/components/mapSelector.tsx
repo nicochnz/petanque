@@ -130,12 +130,10 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
     });
   };
 
-  // Position initiale de la carte
   const initialPosition = userLocation || defaultPosition;
 
   return (
     <div className="relative h-full w-full">
-      {/* Indicateur de chargement */}
       {!isMapLoaded && (
         <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
           <div className="text-center">
@@ -145,7 +143,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         </div>
       )}
 
-      {/* Carte Leaflet optimisée */}
       <MapContainer
         center={initialPosition}
         zoom={13}
@@ -154,7 +151,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         attributionControl={false}
         style={{ background: '#f8f9fa' }}
       >
-        {/* TileLayer optimisé avec cache */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -165,7 +161,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           updateWhenIdle={true}
         />
 
-        {/* Marqueur de position utilisateur */}
         {userLocation && (
           <Marker position={userLocation} icon={createUserLocationIcon()}>
             <Popup>
@@ -177,7 +172,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           </Marker>
         )}
 
-        {/* Marqueurs des terrains existants */}
         {terrains.map((terrain, index) => (
           <Marker
             key={`${terrain.lat}-${terrain.lng}-${index}`}
@@ -206,7 +200,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           </Marker>
         ))}
 
-        {/* Marqueur temporaire pour nouveau terrain */}
         {marker && (
           <Marker
             position={[marker.lat, marker.lng]}
@@ -221,14 +214,11 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           </Marker>
         )}
 
-        {/* Gestionnaire de clic sur la carte */}
         <MapClickHandler />
 
-        {/* Composant pour initialiser la carte */}
         <MapReady onMapLoad={handleMapLoad} />
       </MapContainer>
 
-      {/* Bouton de géolocalisation */}
       <button
         onClick={getUserLocation}
         className="absolute top-4 right-4 bg-white p-2 rounded-lg shadow-lg hover:bg-gray-50 transition-colors z-20"
@@ -244,7 +234,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         )}
       </button>
 
-      {/* Messages d'erreur */}
       {locationError && (
         <div className="absolute bottom-4 left-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-2 rounded-lg text-sm z-20">
           {locationError}

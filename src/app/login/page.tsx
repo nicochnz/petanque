@@ -29,7 +29,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-light relative overflow-hidden">
-      {/* Header avec logo et navigation */}
       <header className="bg-primary text-light px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="w-3 h-3 rounded-full bg-secondary"></div>
@@ -41,10 +40,8 @@ export default function LoginPage() {
         <div className="w-3 h-3 rounded-full bg-secondary opacity-0 sm:opacity-100"></div>
       </header>
 
-      {/* Hero Section - Design mobile-first */}
       <div className="bg-primary min-h-screen flex items-center justify-center px-4">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-8 sm:gap-12">
-          {/* Image en pleine largeur sur mobile */}
           <div className="w-full">
             <div className="relative h-64 sm:h-80 lg:h-96 w-full rounded-2xl overflow-hidden border-2 border-light">
               <Image
@@ -57,19 +54,17 @@ export default function LoginPage() {
             </div>
           </div>
           
-          {/* Contenu centré */}
           <div className="text-center w-full">
             <h1 className="text-3xl sm:text-4xl lg:text-6xl font-serif font-bold mb-4 sm:mb-6 text-light">
               Bienvenue sur le <span className="uppercase">PÉTANQUE CLUB</span>
             </h1>
             <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 italic text-light/90">
-              "Tu tires ou tu pointes ?"
+              &quot;Tu tires ou tu pointes ?&quot;
             </p>
             <p className="text-base sm:text-lg text-light/80 mb-8 leading-relaxed max-w-2xl mx-auto">
-              L'application collaborative de la pétanque ! Découvrez et partagez les meilleurs terrains de pétanque près de chez vous. Créez un compte pour ajouter de nouveaux terrains.
+              L&apos;application collaborative de la pétanque ! Découvrez et partagez les meilleurs terrains de pétanque près de chez vous. Créez un compte pour ajouter de nouveaux terrains.
             </p>
             
-            {/* Statistiques en ligne sur desktop, empilées sur mobile */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-8">
               <div className="text-center">
                 <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-secondary block">12</span>
@@ -85,7 +80,6 @@ export default function LoginPage() {
               </div>
             </div>
             
-            {/* Boutons empilés sur mobile, côte à côte sur desktop */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
                 onClick={() => router.push('/')}
@@ -104,7 +98,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Section de connexion */}
       <section className="bg-light py-12 sm:py-16">
         <div className="max-w-md mx-auto px-4">
           <div className="bg-surface rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl border border-light-dark">
@@ -113,7 +106,7 @@ export default function LoginPage() {
                 Terrains de Pétanque
               </h2>
               <p className="text-lg italic text-secondary mb-4">
-                "Tu tires ou tu pointes ?"
+                &quot;Tu tires ou tu pointes ?&quot;
               </p>
               <p className="text-sm text-dark/70">
                 Connectez-vous pour découvrir et partager les meilleurs terrains de pétanque
@@ -165,7 +158,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-primary text-light py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

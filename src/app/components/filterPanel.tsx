@@ -45,7 +45,6 @@ export default function FilterPanel({
           </button>
         </div>
 
-        {/* Notation minimale */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Note minimale
@@ -67,7 +66,6 @@ export default function FilterPanel({
           </div>
         </div>
 
-        {/* Distance */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Distance maximale: {filters.maxDistance === 50 ? 'Illimitée' : `${filters.maxDistance} km`}
@@ -103,7 +101,6 @@ export default function FilterPanel({
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-gray-200">
           <button
             onClick={resetFilters}
