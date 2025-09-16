@@ -1,75 +1,15 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-
-interface UserStats {
-  terrainsAdded: number;
-  totalRatings: number;
-  averageRating: number;
-  lastActivity: string;
-}
-
-interface Terrain {
-  _id: string;
-  name: string;
-  description: string;
-  location: {
-    lat: number;
-    lng: number;
-    address?: string;
-  };
-  imageUrl?: string;
-  createdAt: string;
-}
+import { useProfile } from '../hooks/useProfile';
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  const [stats, setStats] = useState<UserStats>({
-    terrainsAdded: 0,
-    totalRatings: 0,
-    averageRating: 0,
-    lastActivity: ''
-  });
-  const [recentTerrains, setRecentTerrains] = useState<Terrain[]>([]);
+  const { stats, recentTerrains, isLoading, user } = useProfile();
 
-  useEffect(() => {
-    if (status !== 'loading' && !session) {
-      router.push('/login');
-    }
-  }, [session, status, router]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Récupérer les statistiques
-        const statsRes = await fetch('/api/user/stats');
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
-        }
-
-        // Récupérer les terrains récents
-        const terrainsRes = await fetch('/api/user/terrains');
-        if (terrainsRes.ok) {
-          const terrainsData = await terrainsRes.json();
-          setRecentTerrains(terrainsData);
-        }
-      } catch (error) {
-        console.error('Erreur lors de la récupération des données:', error);
-      }
-    };
-
-    if (session?.user) {
-      fetchUserData();
-    }
-  }, [session]);
-
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-light flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -77,122 +17,129 @@ export default function ProfilePage() {
     );
   }
 
-  if (!session?.user) {
+  if (!user) {
+    router.push('/login');
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-light py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <Link 
-          href="/"
-          className="inline-flex items-center mb-6 text-primary hover:text-primary-dark transition-colors"
-        >
-          <svg 
-            className="w-5 h-5 mr-2" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M10 19l-7-7m0 0l7-7m-7 7h18" 
-            />
-          </svg>
-          <span className="hidden sm:inline">Retour à l&apos;accueil</span>
-          <span className="sm:hidden">Retour</span>
-        </Link>
 
-        <div className="card overflow-hidden">
-          <div className="relative h-32 sm:h-48 bg-gradient-to-r from-primary to-secondary">
+  return (
+    <main className="min-h-screen bg-light py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <nav aria-label="Navigation de retour">
+          <Link 
+            href="/"
+            className="inline-flex items-center mb-6 text-primary hover:text-primary-dark transition-colors"
+            aria-label="Retour à la page d'accueil"
+          >
+            <svg 
+              className="w-5 h-5 mr-2" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+              />
+            </svg>
+            <span className="hidden sm:inline">Retour à l&apos;accueil</span>
+            <span className="sm:hidden">Retour</span>
+          </Link>
+        </nav>
+
+        <article className="card overflow-hidden">
+          <header className="relative h-32 sm:h-48 bg-gradient-to-r from-primary to-secondary">
             <div className="absolute -bottom-12 sm:-bottom-16 left-4 sm:left-8">
-              <div className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-surface overflow-hidden bg-surface">
-                {session.user.image ? (
+              <figure className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-surface overflow-hidden bg-surface">
+                {user.image ? (
                   <Image
-                    src={session.user.image}
-                    alt={session.user.name || 'Photo de profil'}
+                    src={user.image}
+                    alt={`Photo de profil de ${user.name || 'l\'utilisateur'}`}
                     fill
                     className="object-cover"
                   />
                 ) : (
                   <div className="h-full w-full bg-light flex items-center justify-center">
-                    <span className="text-2xl sm:text-4xl text-primary">
-                      {session.user.name?.[0]?.toUpperCase() || '?'}
+                    <span className="text-2xl sm:text-4xl text-primary" aria-label={`Initiale de ${user.name || 'l\'utilisateur'}`}>
+                      {user.name?.[0]?.toUpperCase() || '?'}
                     </span>
                   </div>
                 )}
-              </div>
+              </figure>
             </div>
-          </div>
+          </header>
 
-          <div className="pt-16 sm:pt-20 pb-6 sm:pb-8 px-4 sm:px-8">
+          <section className="pt-16 sm:pt-20 pb-6 sm:pb-8 px-4 sm:px-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-dark mb-2">
-              {session.user.name}
+              {user.name}
             </h1>
             <p className="text-dark/70 text-sm sm:text-base mb-6">
-              {session.user.email}
+              {user.email}
             </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <div className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
+            <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" aria-label="Statistiques de l'utilisateur">
+              <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`${stats.terrainsAdded} terrains ajoutés`}>
                   {stats.terrainsAdded}
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Terrains ajoutés</div>
-              </div>
-              <div className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
+              </article>
+              <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`${stats.totalRatings} notes données`}>
                   {stats.totalRatings}
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Notes données</div>
-              </div>
-              <div className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
+              </article>
+              <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`Note moyenne de ${stats.averageRating.toFixed(1)} sur 5`}>
                   {stats.averageRating.toFixed(1)}
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Note moyenne</div>
-              </div>
-              <div className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
+              </article>
+              <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`Dernière activité: ${stats.lastActivity}`}>
                   {stats.lastActivity}
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Dernière activité</div>
-              </div>
-            </div>
+              </article>
+            </section>
 
-            <div className="bg-light rounded-xl p-4 sm:p-6">
+            <section className="bg-light rounded-xl p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold text-dark mb-4">
                 Terrains récemment ajoutés
               </h2>
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-3 sm:space-y-4" role="list" aria-label="Liste des terrains ajoutés par l'utilisateur">
                 {recentTerrains.length > 0 ? (
                   recentTerrains.map(terrain => (
-                    <div 
+                    <article 
                       key={terrain._id}
                       className="bg-surface rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow"
+                      role="listitem"
                     >
                       <div className="flex items-start gap-3 sm:gap-4">
                         {terrain.imageUrl && (
-                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0">
+                          <figure className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0">
                             <Image
                               src={terrain.imageUrl}
-                              alt={terrain.name}
+                              alt={`Photo du terrain de pétanque ${terrain.name}`}
                               fill
                               className="object-cover"
                             />
-                          </div>
+                          </figure>
                         )}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-dark text-sm sm:text-base truncate">{terrain.name}</h3>
                           <p className="text-xs sm:text-sm text-dark/70 mt-1 line-clamp-2">{terrain.description}</p>
-                          <p className="text-xs text-dark/50 mt-2">
+                          <time className="text-xs text-dark/50 mt-2" dateTime={terrain.createdAt}>
                             Ajouté le {new Date(terrain.createdAt).toLocaleDateString('fr-FR')}
-                          </p>
+                          </time>
                         </div>
                       </div>
-                    </div>
+                    </article>
                   ))
                 ) : (
                   <p className="text-dark/70 text-center py-4 text-sm sm:text-base">
@@ -200,10 +147,10 @@ export default function ProfilePage() {
                   </p>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
+            </section>
+          </section>
+        </article>
       </div>
-    </div>
+    </main>
   );
 } 
