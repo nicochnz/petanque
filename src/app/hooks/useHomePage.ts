@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 type Terrain = {
   _id?: string;
@@ -24,10 +26,12 @@ type Filters = {
 };
 
 export function useHomePage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  
   const [terrains, setTerrains] = useState<Terrain[]>([]);
   const [filteredTerrains, setFilteredTerrains] = useState<Terrain[]>([]);
   const [displayedTerrains, setDisplayedTerrains] = useState<Terrain[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const terrainsPerPage = 5;
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -52,6 +56,12 @@ export function useHomePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (status !== 'loading' && !session) {
+      router.push('/login');
+    }
+  }, [session, status, router]);
+
+  useEffect(() => {
     fetch('/api/terrains')
       .then(res => res.json())
       .then(data => {
@@ -60,9 +70,8 @@ export function useHomePage() {
       });
   }, []);
 
-  // Fonction pour calculer la distance entre deux points
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-    const R = 6371; // Rayon de la Terre en km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -94,7 +103,6 @@ export function useHomePage() {
     }
 
     setFilteredTerrains(filtered);
-    setCurrentPage(1);
   }, [terrains, filters]);
 
   useEffect(() => {
@@ -169,17 +177,14 @@ export function useHomePage() {
       if (res.ok) {
         const { rating: newRating } = await res.json();
         
-        // Mettre à jour les terrains de base
         setTerrains(prev => 
           prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
         );
 
-        // Mettre à jour les terrains filtrés
         setFilteredTerrains(prev => 
           prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
         );
 
-        // Mettre à jour uniquement la note dans les terrains affichés
         setDisplayedTerrains(prev => 
           prev.map(t => t._id === terrainId ? { ...t, rating: newRating } : t)
         );
@@ -211,7 +216,6 @@ export function useHomePage() {
         },
         (error) => {
           console.warn('Erreur de géolocalisation dans useHomePage:', error);
-          // Ne pas bloquer l'application en cas d'erreur
         },
         options
       );
@@ -247,12 +251,9 @@ export function useHomePage() {
 
       const newTerrain = await response.json();
       
-      // Mettre à jour les terrains avec le nouveau terrain
       setTerrains(prevTerrains => {
         const updatedTerrains = [newTerrain, ...prevTerrains];
-        // Mettre à jour aussi les terrains filtrés
         setFilteredTerrains(updatedTerrains);
-        // Mettre à jour les terrains affichés
         setDisplayedTerrains(updatedTerrains.slice(0, displayedCount));
         return updatedTerrains;
       });
@@ -265,6 +266,8 @@ export function useHomePage() {
       setError(error instanceof Error ? error.message : 'Une erreur est survenue');
     }
   };
+
+  const isGuest = session?.user && 'role' in session.user ? session.user.role === 'guest' : false;
 
   return {
     terrains: displayedTerrains,
@@ -290,5 +293,8 @@ export function useHomePage() {
     showSuccessMessage,
     error,
     handleAddTerrain,
+    isGuest,
+    isLoading: status === 'loading',
+    session
   };
 }
