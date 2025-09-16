@@ -206,9 +206,6 @@ export default function HomePage() {
                 >
                   Trouver un terrain
                 </button>
-                <button className="btn-outline-light w-full sm:w-auto">
-                  Se connecter
-                </button>
               </div>
             </div>
           </div>
