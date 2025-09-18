@@ -129,11 +129,23 @@ export async function POST(
       );
     }
 
+    const avatarPaths: { [key: string]: string } = {
+      'default': '/default-avatar.jpg',
+      'petanque_ball': '/avatars/avatar-2.jpg',
+      'champion': '/avatars/champion.jpg',
+      'golden_player': '/avatars/golden-player.jpg',
+      'legend': '/avatars/legend.jpg'
+    };
+
+    const userImage = user.currentAvatar && user.currentAvatar !== 'default' 
+      ? avatarPaths[user.currentAvatar] || '/default-avatar.jpg'
+      : user.image || '/default-avatar.jpg';
+
     const comment = new Comment({
       terrainId: terrain._id,
       userId: session.user.email,
       userName: user.name,
-      userImage: user.image,
+      userImage: userImage,
       content: content.trim()
     });
 

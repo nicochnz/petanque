@@ -4,10 +4,15 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useProfile } from '../hooks/useProfile';
+import { usePoints } from '../hooks/usePoints';
+import PointsDisplay from '../components/pointsDisplay';
+import EditUsername from '../components/editUsername';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { stats, recentTerrains, isLoading, user } = useProfile();
+  const { stats, recentTerrains, isLoading, user, userName, refetch } = useProfile();
+  const { customizationData } = usePoints();
+
 
   if (isLoading) {
     return (
@@ -52,31 +57,50 @@ export default function ProfilePage() {
         </nav>
 
         <article className="card overflow-hidden">
-          <header className="relative h-32 sm:h-48 bg-gradient-to-r from-primary to-secondary">
+          <header className={`relative h-32 sm:h-48 ${
+            customizationData?.currentBanner === 'sunset' ? 'bg-gradient-to-r from-orange-400 to-pink-500' :
+            customizationData?.currentBanner === 'mountains' ? 'bg-gradient-to-r from-green-400 to-blue-500' :
+            customizationData?.currentBanner === 'ocean' ? 'bg-gradient-to-r from-blue-400 to-cyan-500' :
+            customizationData?.currentBanner === 'golden' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
+            customizationData?.currentBanner === 'default' ? 'bg-gradient-to-r from-gray-400 to-gray-600' :
+            'bg-gradient-to-r from-primary to-secondary'
+          }`}>
             <div className="absolute -bottom-12 sm:-bottom-16 left-4 sm:left-8">
               <figure className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-surface overflow-hidden bg-surface">
-                {user.image ? (
+                {customizationData?.currentAvatar ? (
                   <Image
-                    src={user.image}
-                    alt={`Photo de profil de ${user.name || 'l\'utilisateur'}`}
+                    src={customizationData.avatars.find(a => a.id === customizationData.currentAvatar)?.imageUrl || '/default-avatar.jpg'}
+                    alt={`Avatar de ${user.name || 'l\'utilisateur'}`}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/default-avatar.jpg';
+                    }}
+                  />
+                ) : (
+                  <Image
+                    src="/default-avatar.jpg"
+                    alt={`Avatar par défaut de ${user.name || 'l\'utilisateur'}`}
                     fill
                     className="object-cover"
                   />
-                ) : (
-                  <div className="h-full w-full bg-light flex items-center justify-center">
-                    <span className="text-2xl sm:text-4xl text-primary" aria-label={`Initiale de ${user.name || 'l\'utilisateur'}`}>
-                      {user.name?.[0]?.toUpperCase() || '?'}
-                    </span>
-                  </div>
                 )}
               </figure>
             </div>
           </header>
 
           <section className="pt-16 sm:pt-20 pb-6 sm:pb-8 px-4 sm:px-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-dark mb-2">
-              {user.name}
-            </h1>
+            <EditUsername
+              currentName={userName || 'Utilisateur'}
+              currentImage={customizationData?.currentAvatar && customizationData.currentAvatar !== 'default' 
+                ? customizationData.avatars.find(a => a.id === customizationData.currentAvatar)?.imageUrl || '/default-avatar.jpg'
+                : user.image || '/default-avatar.jpg'
+              }
+              onUpdate={() => {
+                refetch();
+              }}
+            />
             <p className="text-dark/70 text-sm sm:text-base mb-6">
               {user.email}
             </p>
@@ -106,6 +130,10 @@ export default function ProfilePage() {
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Dernière activité</div>
               </article>
+            </section>
+
+            <section className="mb-6 sm:mb-8">
+              <PointsDisplay onDataChange={() => window.location.reload()} />
             </section>
 
             <section className="bg-light rounded-xl p-4 sm:p-6">

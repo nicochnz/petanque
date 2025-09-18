@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 
@@ -29,23 +29,22 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
   const [reportReason, setReportReason] = useState('');
   const [reportDescription, setReportDescription] = useState('');
 
-  useEffect(() => {
-    fetchComments();
-  }, [terrainId]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const response = await fetch(`/api/terrains/${terrainId}/comments`);
       if (response.ok) {
         const data = await response.json();
         setComments(data);
       }
-    } catch (error) {
-      console.error('Erreur lors du chargement des commentaires:', error);
+    } catch {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [terrainId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,8 +62,7 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
         setNewComment('');
         fetchComments();
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du commentaire:', error);
+    } catch {
     } finally {
       setIsSubmitting(false);
     }
@@ -79,8 +77,7 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
       if (response.ok) {
         fetchComments();
       }
-    } catch (error) {
-      console.error('Erreur lors de la suppression du commentaire:', error);
+    } catch {
     }
   };
 
@@ -106,8 +103,7 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
         setReportDescription('');
         alert('Signalement envoyé avec succès');
       }
-    } catch (error) {
-      console.error('Erreur lors du signalement:', error);
+    } catch {
     }
   };
 
@@ -151,11 +147,15 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
             <div key={comment._id} className="border-b border-gray-100 pb-3 last:border-b-0">
               <div className="flex items-start gap-3">
                 <Image
-                  src={comment.userImage}
+                  src={comment.userImage || '/default-avatar.jpg'}
                   alt={comment.userName}
                   width={32}
                   height={32}
                   className="rounded-full"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/default-avatar.jpg';
+                  }}
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

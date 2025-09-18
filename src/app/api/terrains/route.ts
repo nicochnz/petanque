@@ -1,16 +1,16 @@
 import { connectToDatabase } from '@/lib/mango';
 import Terrain from '@/models/terrain';
+import { User } from '@/models/user';
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path, { join } from 'path';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { rateLimiters, getRateLimitIdentifier } from '@/lib/rateLimit';
+import { rateLimiters } from '@/lib/rateLimit';
 import type { Session } from 'next-auth';
 
-export async function GET(req: Request) {
-  const identifier = getRateLimitIdentifier(req);
-  const { success } = await rateLimiters.general.limit(identifier);
+export async function GET() {
+  const { success } = await rateLimiters.general.limit();
   
   if (!success) {
     return NextResponse.json(
@@ -41,8 +41,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const identifier = getRateLimitIdentifier(req, session.user.email);
-  const { success, limit, reset, remaining } = await rateLimiters.addTerrain.limit(identifier);
+  const { success, limit, reset, remaining } = await rateLimiters.addTerrain.limit();
   
   if (!success) {
     return NextResponse.json(
@@ -138,8 +137,19 @@ export async function POST(req: Request) {
       // Convertir l'ID en string pour la sérialisation JSON
       const terrainResponse = {
         ...createdTerrain,
-        _id: createdTerrain._id.toString()
+        _id: (createdTerrain as { _id: { toString(): string } })._id?.toString() || newTerrain._id.toString()
       };
+
+      // Attribuer des points pour la création du terrain
+      await User.findOneAndUpdate(
+        { email: session.user.email },
+        { 
+          $inc: { 
+            'stats.terrainsCreated': 1,
+            points: 10
+          }
+        }
+      );
 
       return NextResponse.json(terrainResponse);
     } catch (error) {
@@ -177,6 +187,16 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
+
+    await User.findOneAndUpdate(
+      { email: session.user.email },
+      { 
+        $inc: { 
+          'stats.terrainsCreated': 1,
+          points: 10
+        }
+      }
+    );
 
     return NextResponse.json(newTerrain);
   }
