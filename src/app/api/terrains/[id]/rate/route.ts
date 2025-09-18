@@ -1,8 +1,10 @@
 import { connectToDatabase } from '@/lib/mango';
 import Terrain from '@/models/terrain';
+import { User } from '@/models/user';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import authOptions from '@/lib/auth';
+import type { Session } from 'next-auth';
 
 interface Rating {
   userId: string;
@@ -15,7 +17,7 @@ export async function POST(
   context: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
@@ -59,6 +61,16 @@ export async function POST(
     };
 
     await terrain.save();
+
+    await User.findOneAndUpdate(
+      { email: session.user.email },
+      { 
+        $inc: { 
+          'stats.terrainsRated': 1,
+          points: 3
+        }
+      }
+    );
 
     return NextResponse.json({ 
       success: true,

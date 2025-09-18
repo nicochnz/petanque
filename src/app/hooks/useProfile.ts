@@ -30,7 +30,9 @@ export function useProfile() {
     lastActivity: ''
   });
   const [recentTerrains, setRecentTerrains] = useState<Terrain[]>([]);
+  const [userName, setUserName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,9 +40,10 @@ export function useProfile() {
       
       setIsLoading(true);
       try {
-        const [statsRes, terrainsRes] = await Promise.all([
+        const [statsRes, terrainsRes, userRes] = await Promise.all([
           fetch('/api/user/stats'),
-          fetch('/api/user/terrains')
+          fetch('/api/user/terrains'),
+          fetch('/api/user/profile')
         ]);
 
         if (statsRes.ok) {
@@ -52,20 +55,32 @@ export function useProfile() {
           const terrainsData = await terrainsRes.json();
           setRecentTerrains(terrainsData);
         }
-      } catch (error) {
-        console.error('Erreur lors de la récupération des données:', error);
+
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setUserName(userData.name || session.user.name || 'Utilisateur');
+        } else {
+          setUserName(session.user.name || 'Utilisateur');
+        }
+      } catch {
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [session]);
+  }, [session, refreshTrigger]);
+
+  const refetch = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return {
     stats,
     recentTerrains,
     isLoading,
-    user: session?.user
+    user: session?.user,
+    userName,
+    refetch
   };
 }
