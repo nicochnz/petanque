@@ -34,7 +34,7 @@ export default function LoginPage() {
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             
-            <figure className="order-2 lg:order-1">
+            <figure className="order-2 lg:order-1 hidden lg:block">
               <div className="relative group">
                 <div className="absolute inset-0 bg-white rounded-3xl transform translate-x-2 translate-y-2" aria-hidden="true"></div>
                 <div className="relative h-80 sm:h-96 lg:h-[500px] w-full rounded-3xl overflow-hidden shadow-2xl">
@@ -98,7 +98,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <section className="bg-gradient-to-br from-light to-light-dark py-20" aria-labelledby="features-title">
+      <section className="bg-gradient-to-br from-light to-light-dark py-20 hidden lg:block" aria-labelledby="features-title">
         <div className="max-w-6xl mx-auto px-4">
           <header className="text-center mb-16">
             <h2 id="features-title" className="text-4xl sm:text-5xl font-serif font-bold text-primary mb-6">
@@ -153,7 +153,7 @@ export default function LoginPage() {
         </div>
       </section>
 
-      <footer className="bg-primary text-light py-8" role="contentinfo">
+      <footer className="bg-primary text-light py-8 hidden lg:block" role="contentinfo">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <section>

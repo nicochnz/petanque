@@ -121,7 +121,7 @@ export default function HomePage() {
           
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="sm:hidden p-2"
+            className="sm:hidden p-2 cursor-pointer"
             aria-label="Ouvrir le menu mobile"
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
@@ -147,7 +147,7 @@ export default function HomePage() {
                   router.push('/profile');
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-light hover:text-light/80 transition-colors"
+                className="block w-full text-left text-light hover:text-light/80 transition-colors cursor-pointer"
                 aria-label="Accéder à mon profil"
               >
                 Mon Profil
@@ -158,7 +158,7 @@ export default function HomePage() {
                 signOut();
                 setIsMobileMenuOpen(false);
               }}
-              className="block w-full text-left text-light hover:text-light/80 transition-colors"
+              className="block w-full text-left text-light hover:text-light/80 transition-colors cursor-pointer"
               aria-label="Se déconnecter de l'application"
             >
               Se déconnecter

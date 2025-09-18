@@ -39,7 +39,7 @@ export default function FilterPanel({
           <h1 className="text-2xl font-bold text-amber-900">Filtres</h1>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="text-gray-500 hover:text-gray-700 text-2xl cursor-pointer"
           >
             ✕
           </button>
@@ -54,7 +54,7 @@ export default function FilterPanel({
               <button
                 key={rating}
                 onClick={() => onFiltersChange({ ...filters, minRating: rating })}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                   filters.minRating === rating
                     ? 'bg-amber-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -74,7 +74,7 @@ export default function FilterPanel({
           {!filters.userLocation && (
             <button
               onClick={onGetLocation}
-              className="w-full mb-3 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+              className="w-full mb-3 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer"
             >
               📍 Utiliser ma position
             </button>
@@ -104,13 +104,13 @@ export default function FilterPanel({
         <div className="flex gap-3 pt-4 border-t border-gray-200">
           <button
             onClick={resetFilters}
-            className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors cursor-pointer"
           >
             Réinitialiser
           </button>
           <button
             onClick={onClose}
-            className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-4 py-2 rounded-lg font-medium hover:from-amber-700 hover:to-orange-700 transition-all"
+            className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-4 py-2 rounded-lg font-medium hover:from-amber-700 hover:to-orange-700 transition-all cursor-pointer"
           >
             Voir {totalResults} résultat{totalResults > 1 ? 's' : ''}
           </button>

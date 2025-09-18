@@ -24,14 +24,31 @@ const MapReady = ({ onMapLoad }: { onMapLoad: () => void }) => {
   const map = useMap();
   
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && map) {
       (window as typeof window & { map?: Map }).map = map;
       
-      // S'assurer que la carte est interactive
-      map.whenReady(() => {
-        map.invalidateSize();
-        onMapLoad();
-      });
+      const handleMapReady = () => {
+        try {
+          map.invalidateSize();
+          onMapLoad();
+        } catch (error) {
+          console.warn('Erreur lors de l\'initialisation de la carte:', error);
+          setTimeout(() => {
+            try {
+              map.invalidateSize();
+              onMapLoad();
+            } catch (retryError) {
+              console.warn('Erreur lors du retry de la carte:', retryError);
+            }
+          }, 100);
+        }
+      };
+
+      if (map.whenReady) {
+        map.whenReady(handleMapReady);
+      } else {
+        setTimeout(handleMapReady, 100);
+      }
     }
   }, [map, onMapLoad]);
   
@@ -46,19 +63,17 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  // Position par défaut (Bordeaux)
   const defaultPosition: [number, number] = React.useMemo(() => [44.837789, -0.57918], []);
 
-  // Optimisation de la géolocalisation avec useCallback
   const getUserLocation = useCallback(() => {
     if ("geolocation" in navigator) {
       setIsLocating(true);
       setLocationError(null);
       
       const options = {
-        enableHighAccuracy: true, // Réactivé pour une meilleure précision
-        timeout: 10000, // Augmenté à 10 secondes
-        maximumAge: 600000 // 10 minutes de cache
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 600000
       };
 
       navigator.geolocation.getCurrentPosition(
@@ -68,7 +83,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
           setIsLocating(false);
           setLocationError(null);
           
-          // Utiliser la référence de carte correcte
           const map = (window as typeof window & { map?: Map }).map;
           if (map) {
             map.setView([latitude, longitude], 15);
@@ -77,7 +91,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         (error) => {
           console.warn("Erreur de géolocalisation:", error);
           setIsLocating(false);
-          // En cas d'erreur, on utilise la position par défaut
           setUserLocation(defaultPosition);
           
           switch (error.code) {
@@ -103,7 +116,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
   }, [defaultPosition]);
 
   useEffect(() => {
-    // Délai pour permettre au composant de se monter
     const timer = setTimeout(() => {
       getUserLocation();
     }, 100);
@@ -111,7 +123,6 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
     return () => clearTimeout(timer);
   }, [getUserLocation]);
 
-  // Gestionnaire de chargement de la carte
   const handleMapLoad = useCallback(() => {
     setIsMapLoaded(true);
   }, []);
@@ -151,72 +162,76 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
         attributionControl={false}
         style={{ background: '#f8f9fa' }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={18}
-          minZoom={10}
-          maxNativeZoom={18}
-          updateWhenZooming={false}
-          updateWhenIdle={true}
-        />
-
-        {userLocation && (
-          <Marker position={userLocation} icon={createUserLocationIcon()}>
-            <Popup>
-              <div className="text-center">
-                <p className="font-semibold">Votre position</p>
-                <p className="text-sm text-gray-600">Cliquez sur la carte pour ajouter un terrain</p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-
-        {terrains.map((terrain, index) => (
-          <Marker
-            key={`${terrain.lat}-${terrain.lng}-${index}`}
-            position={[terrain.lat, terrain.lng]}
-            icon={createTerrainIcon()}
-          >
-            <Popup>
-              <div className="text-center min-w-[200px]">
-                {terrain.imageUrl && (
-                  <div className="relative w-full h-24 mb-2 rounded overflow-hidden">
-                    <Image
-                      src={terrain.imageUrl}
-                      alt={terrain.name || 'Terrain'}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                <h3 className="font-semibold text-lg mb-1">{terrain.name || 'Terrain'}</h3>
-                <p className="text-sm text-gray-600 mb-2">{terrain.description || 'Aucune description'}</p>
-                {terrain.address && (
-                  <p className="text-xs text-gray-500">📍 {terrain.address}</p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {marker && (
-          <Marker
-            position={[marker.lat, marker.lng]}
-            icon={createNewMarkerIcon()}
-          >
-            <Popup>
-              <div className="text-center">
-                <p className="font-semibold text-green-600">Nouveau terrain</p>
-                <p className="text-sm text-gray-600">Cliquez pour confirmer l&apos;emplacement</p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-
-        <MapClickHandler />
-
         <MapReady onMapLoad={handleMapLoad} />
+        
+        {isMapLoaded && (
+          <>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={18}
+              minZoom={10}
+              maxNativeZoom={18}
+              updateWhenZooming={false}
+              updateWhenIdle={true}
+            />
+
+            {userLocation && (
+              <Marker position={userLocation} icon={createUserLocationIcon()}>
+                <Popup>
+                  <div className="text-center">
+                    <p className="font-semibold">Votre position</p>
+                    <p className="text-sm text-gray-600">Cliquez sur la carte pour ajouter un terrain</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            {terrains.map((terrain, index) => (
+              <Marker
+                key={`${terrain.lat}-${terrain.lng}-${index}`}
+                position={[terrain.lat, terrain.lng]}
+                icon={createTerrainIcon()}
+              >
+                <Popup>
+                  <div className="text-center min-w-[200px]">
+                    {terrain.imageUrl && (
+                      <div className="relative w-full h-24 mb-2 rounded overflow-hidden">
+                        <Image
+                          src={terrain.imageUrl}
+                          alt={terrain.name || 'Terrain'}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <h3 className="font-semibold text-lg mb-1">{terrain.name || 'Terrain'}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{terrain.description || 'Aucune description'}</p>
+                    {terrain.address && (
+                      <p className="text-xs text-gray-500">📍 {terrain.address}</p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+            {marker && (
+              <Marker
+                position={[marker.lat, marker.lng]}
+                icon={createNewMarkerIcon()}
+              >
+                <Popup>
+                  <div className="text-center">
+                    <p className="font-semibold text-green-600">Nouveau terrain</p>
+                    <p className="text-sm text-gray-600">Cliquez pour confirmer l&apos;emplacement</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            <MapClickHandler />
+          </>
+        )}
       </MapContainer>
 
       <button
