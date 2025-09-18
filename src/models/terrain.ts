@@ -20,10 +20,30 @@ const TerrainSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
   }],
   createdBy: { type: String, required: true },
+  isDeleted: { type: Boolean, default: false },
+  reports: [{
+    userId: { type: String, required: true },
+    reason: { 
+      type: String, 
+      enum: ['spam', 'inappropriate', 'offensive', 'fake', 'duplicate', 'other'],
+      required: true 
+    },
+    description: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+TerrainSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
 });
 
 export default mongoose.models.Terrain || mongoose.model('Terrain', TerrainSchema);
