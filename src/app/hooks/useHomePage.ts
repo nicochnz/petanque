@@ -12,6 +12,7 @@ type Terrain = {
     address?: string;
   };
   imageUrl?: string;
+  createdBy?: string;
   rating?: {
     average: number;
     count: number;
@@ -267,6 +268,25 @@ export function useHomePage() {
     }
   };
 
+  const handleDeleteTerrain = async (terrainId: string) => {
+    try {
+      const response = await fetch(`/api/terrains/${terrainId}/delete`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setTerrains(prevTerrains => prevTerrains.filter(t => t._id !== terrainId));
+        setFilteredTerrains(prevTerrains => prevTerrains.filter(t => t._id !== terrainId));
+        setDisplayedTerrains(prevTerrains => prevTerrains.filter(t => t._id !== terrainId));
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Erreur lors de la suppression');
+      }
+    } catch {
+      alert('Erreur de connexion');
+    }
+  };
+
   const isGuest = session?.user && 'role' in session.user ? session.user.role === 'guest' : false;
 
   return {
@@ -293,6 +313,7 @@ export function useHomePage() {
     showSuccessMessage,
     error,
     handleAddTerrain,
+    handleDeleteTerrain,
     isGuest,
     isLoading: status === 'loading',
     session

@@ -109,22 +109,22 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-primary to-secondary p-6 text-white">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-gradient-to-r from-primary to-secondary p-4 sm:p-6 text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Système de Points</h2>
-            <p className="text-white/80">Progressez et débloquez des récompenses</p>
+            <h2 className="text-xl sm:text-2xl font-bold">Système de Points</h2>
+            <p className="text-white/80 text-sm sm:text-base">Progressez et débloquez des récompenses</p>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold">{points}</div>
-            <div className="text-white/80">points</div>
+          <div className="text-center sm:text-right">
+            <div className="text-2xl sm:text-3xl font-bold">{points}</div>
+            <div className="text-white/80 text-sm sm:text-base">points</div>
           </div>
         </div>
         
         <div className="mb-4">
-          <div className="flex justify-between text-sm mb-1">
+          <div className="flex flex-col sm:flex-row sm:justify-between text-xs sm:text-sm mb-1 gap-1 sm:gap-0">
             <span>Niveau {level}</span>
-            <span>{pointsToNextLevel} points jusqu&apos;au niveau {level + 1}</span>
+            <span className="text-center sm:text-right">{pointsToNextLevel} points jusqu&apos;au niveau {level + 1}</span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-2">
             <div 
@@ -135,7 +135,7 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {(errorMessage || successMessage) && (
           <div className={`mb-4 p-3 rounded-lg ${
             errorMessage ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'
@@ -145,56 +145,56 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
         )}
 
 
-        <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
+        <div className="flex space-x-1 mb-4 sm:mb-6 bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('points')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'points' 
                 ? 'bg-white text-primary shadow-sm' 
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            📊 Statistiques
+            📊 Stats
           </button>
           <button
             onClick={() => setActiveTab('badges')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'badges' 
                 ? 'bg-white text-primary shadow-sm' 
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            🏆 Badges ({currentBadges.length})
+            🏆 Badges
           </button>
           <button
             onClick={() => setActiveTab('shop')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'shop' 
                 ? 'bg-white text-primary shadow-sm' 
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            🛍️ Boutique
+            🛍️ Shop
           </button>
         </div>
 
         {activeTab === 'points' && (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{stats.terrainsCreated}</div>
-              <div className="text-sm text-gray-600">Terrains créés</div>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-primary">{stats.terrainsCreated}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Terrains</div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{stats.commentsPosted}</div>
-              <div className="text-sm text-gray-600">Commentaires</div>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-primary">{stats.commentsPosted}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Commentaires</div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{stats.terrainsRated}</div>
-              <div className="text-sm text-gray-600">Terrains notés</div>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-primary">{stats.terrainsRated}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Notes</div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{stats.reportsSubmitted}</div>
-              <div className="text-sm text-gray-600">Signalements</div>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-primary">{stats.reportsSubmitted}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Signals</div>
             </div>
           </div>
         )}
@@ -252,16 +252,16 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
         )}
 
         {activeTab === 'shop' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <h3 className="font-semibold mb-3">Avatars</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Avatars</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {avatars.map((avatar) => (
-                  <div key={avatar.id} className={`border rounded-lg p-3 ${
+                  <div key={avatar.id} className={`border rounded-lg p-2 sm:p-3 ${
                     avatar.isCurrent ? 'bg-primary/10 border-primary' : 'bg-gray-50 border-gray-200'
                   }`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
+                      <div className="relative w-8 h-8 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-gray-200">
                         <Image
                           src={avatar.imageUrl}
                           alt={avatar.name}
@@ -273,15 +273,15 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
                           }}
                         />
                       </div>
-                      <div>
-                        <div className="font-medium">{avatar.name}</div>
-                        <div className="text-xs text-gray-600">{avatar.cost} points</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-xs sm:text-sm truncate">{avatar.name}</div>
+                        <div className="text-xs text-gray-600">{avatar.cost} pts</div>
                       </div>
                     </div>
                     {avatar.unlocked ? (
                       <button
                         onClick={() => handleEquipAvatar(avatar.id, avatar.name)}
-                        className={`w-full py-1 px-3 rounded text-xs cursor-pointer ${
+                        className={`w-full py-1 px-2 sm:px-3 rounded text-xs cursor-pointer ${
                           avatar.isCurrent 
                             ? 'bg-primary text-white' 
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -293,13 +293,13 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
                       <button
                         onClick={() => handlePurchaseAvatar(avatar.id, avatar.name, avatar.cost)}
                         disabled={!avatar.canAfford}
-                        className={`w-full py-1 px-3 rounded text-xs cursor-pointer ${
+                        className={`w-full py-1 px-2 sm:px-3 rounded text-xs cursor-pointer ${
                           avatar.canAfford 
                             ? 'bg-secondary text-white hover:bg-secondary-dark' 
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        {avatar.canAfford ? 'Acheter' : 'Points insuffisants'}
+                        {avatar.canAfford ? 'Acheter' : 'Pas assez'}
                       </button>
                     )}
                   </div>
@@ -308,14 +308,14 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
             </div>
 
             <div>
-              <h3 className="font-semibold mb-3">Bannières</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Bannières</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {banners.map((banner) => (
-                  <div key={banner.id} className={`border rounded-lg p-3 ${
+                  <div key={banner.id} className={`border rounded-lg p-2 sm:p-3 ${
                     banner.isCurrent ? 'bg-primary/10 border-primary' : 'bg-gray-50 border-gray-200'
                   }`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-12 h-6 rounded ${
+                      <div className={`w-8 h-4 sm:w-12 sm:h-6 rounded ${
                         banner.id === 'default' ? 'bg-gradient-to-r from-gray-400 to-gray-600' :
                         banner.id === 'sunset' ? 'bg-gradient-to-r from-orange-400 to-pink-500' :
                         banner.id === 'mountains' ? 'bg-gradient-to-r from-green-400 to-blue-500' :
@@ -323,15 +323,15 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
                         banner.id === 'golden' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
                         'bg-gray-200'
                       }`}></div>
-                      <div>
-                        <div className="font-medium">{banner.name}</div>
-                        <div className="text-xs text-gray-600">{banner.cost} points</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-xs sm:text-sm truncate">{banner.name}</div>
+                        <div className="text-xs text-gray-600">{banner.cost} pts</div>
                       </div>
                     </div>
                     {banner.unlocked ? (
                       <button
                         onClick={() => handleEquipBanner(banner.id, banner.name)}
-                        className={`w-full py-1 px-3 rounded text-xs cursor-pointer ${
+                        className={`w-full py-1 px-2 sm:px-3 rounded text-xs cursor-pointer ${
                           banner.isCurrent 
                             ? 'bg-primary text-white' 
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -343,13 +343,13 @@ export default function PointsDisplay({ onDataChange }: PointsDisplayProps = {})
                       <button
                         onClick={() => handlePurchaseBanner(banner.id, banner.name, banner.cost)}
                         disabled={!banner.canAfford}
-                        className={`w-full py-1 px-3 rounded text-xs cursor-pointer ${
+                        className={`w-full py-1 px-2 sm:px-3 rounded text-xs cursor-pointer ${
                           banner.canAfford 
                             ? 'bg-secondary text-white hover:bg-secondary-dark' 
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        {banner.canAfford ? 'Acheter' : 'Points insuffisants'}
+                        {banner.canAfford ? 'Acheter' : 'Pas assez'}
                       </button>
                     )}
                   </div>
