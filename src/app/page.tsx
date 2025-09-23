@@ -37,6 +37,7 @@ export default function HomePage() {
     getUserLocation,
     loadMoreTerrains,
     hasMoreTerrains,
+    handleDeleteTerrain,
     isGuest,
     isLoading,
     session
@@ -319,6 +320,20 @@ export default function HomePage() {
                       size="sm"
                     />
                   </div>
+                  
+                  {!isGuest && terrain.createdBy === session?.user?.email && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Êtes-vous sûr de vouloir supprimer ce terrain ?')) {
+                          handleDeleteTerrain(terrain._id!);
+                        }
+                      }}
+                      className="text-red-500 hover:text-red-700 text-xs cursor-pointer"
+                    >
+                      Supprimer
+                    </button>
+                  )}
                 </div>
               </article>
             ))}

@@ -107,8 +107,11 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      const terrainReports = await Terrain.findById(terrainId).select('reports');
-      if (terrainReports && terrainReports.reports.length >= 2) {
+      const reportCount = await Report.countDocuments({
+        type: 'terrain',
+        targetId: terrainId
+      });
+      if (reportCount >= 2) {
         await Terrain.findByIdAndUpdate(terrainId, { isDeleted: true });
       }
     } else if (type === 'comment') {
@@ -123,8 +126,11 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      const commentReports = await Comment.findById(targetId).select('reports');
-      if (commentReports && commentReports.reports.length >= 2) {
+      const reportCount = await Report.countDocuments({
+        type: 'comment',
+        targetId: targetId
+      });
+      if (reportCount >= 2) {
         await Comment.findByIdAndUpdate(targetId, { isDeleted: true });
       }
     }

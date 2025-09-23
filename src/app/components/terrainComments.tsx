@@ -119,60 +119,60 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
 
   if (isLoading) {
     return (
-      <div className="w-80 max-h-96 overflow-y-auto p-4">
+      <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl max-h-96 overflow-y-auto p-4">
         <div className="text-center text-gray-500">Chargement des commentaires...</div>
       </div>
     );
   }
 
   return (
-    <div className="w-80 max-h-96 overflow-y-auto">
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="font-semibold text-lg mb-2">Commentaires - {terrainName}</h3>
+    <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl max-h-96 overflow-y-auto">
+      <div className="p-3 sm:p-4 border-b border-gray-200">
+        <h3 className="font-semibold text-base sm:text-lg mb-2">Commentaires - {terrainName}</h3>
         <div className="flex gap-2">
           <button
             onClick={() => setShowReportModal(true)}
-            className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
+            className="text-xs sm:text-sm text-red-600 hover:text-red-800 cursor-pointer"
           >
             🚩 Signaler ce terrain
           </button>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {comments.length === 0 ? (
           <p className="text-gray-500 text-center">Aucun commentaire pour le moment</p>
         ) : (
           comments.map((comment) => (
             <div key={comment._id} className="border-b border-gray-100 pb-3 last:border-b-0">
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2 sm:gap-3">
                 <Image
                   src={comment.userImage || '/default-avatar.jpg'}
                   alt={comment.userName}
-                  width={32}
-                  height={32}
-                  className="rounded-full"
+                  width={28}
+                  height={28}
+                  className="rounded-full sm:w-8 sm:h-8"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = '/default-avatar.jpg';
                   }}
                 />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{comment.userName}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                    <span className="font-medium text-xs sm:text-sm">{comment.userName}</span>
                     <span className="text-xs text-gray-500">
                       {formatDate(comment.createdAt)}
                     </span>
                     {session?.user?.email === comment.userId && (
                       <button
                         onClick={() => handleDeleteComment(comment._id)}
-                        className="text-xs text-red-600 hover:text-red-800 cursor-pointer"
+                        className="text-xs text-red-600 hover:text-red-800 cursor-pointer self-start sm:self-auto"
                       >
                         Supprimer
                       </button>
                     )}
                   </div>
-                  <p className="text-sm text-gray-700">{comment.content}</p>
+                  <p className="text-xs sm:text-sm text-gray-700 break-words">{comment.content}</p>
                 </div>
               </div>
             </div>
@@ -181,14 +181,14 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
       </div>
 
       {session && (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-3 sm:p-4 border-t border-gray-200">
           <form onSubmit={handleSubmitComment} className="space-y-2">
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Ajouter un commentaire..."
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm resize-none"
-              rows={3}
+              className="w-full p-2 border border-gray-300 rounded-lg text-xs sm:text-sm resize-none"
+              rows={2}
               maxLength={500}
             />
             <div className="flex justify-between items-center">
@@ -196,7 +196,7 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
               <button
                 type="submit"
                 disabled={!newComment.trim() || isSubmitting}
-                className="px-3 py-1 bg-primary text-white rounded-lg text-sm hover:bg-primary-dark disabled:opacity-50 cursor-pointer"
+                className="px-2 sm:px-3 py-1 bg-primary text-white rounded-lg text-xs sm:text-sm hover:bg-primary-dark disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? 'Envoi...' : 'Commenter'}
               </button>
@@ -206,9 +206,9 @@ export default function TerrainComments({ terrainId, terrainName }: TerrainComme
       )}
 
       {showReportModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="font-semibold text-lg mb-4">Signaler ce terrain</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg">
+            <h3 className="font-semibold text-base sm:text-lg mb-4">Signaler ce terrain</h3>
             <form onSubmit={handleReport} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Raison du signalement</label>
