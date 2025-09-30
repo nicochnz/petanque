@@ -96,7 +96,7 @@ petanque/
   - Notes et commentaires
   - Géolocalisation
 
-### Upstash Redis
+### Upstash Redis 
 - Rate limiting pour les API
 - Cache des données fréquemment utilisées
 
