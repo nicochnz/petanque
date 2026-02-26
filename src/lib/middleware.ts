@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 import { getServerSession } from 'next-auth/next';
 
-export async function requireAuth(req: Request): Promise<Session | NextResponse> {
+export async function requireAuth(): Promise<Session | NextResponse> {
   const session = await getServerSession(authOptions);
   
   if (!session || !session.user) {
@@ -16,8 +16,8 @@ export async function requireAuth(req: Request): Promise<Session | NextResponse>
   return session;
 }
 
-export async function requireNonGuest(req: Request): Promise<Session | NextResponse> {
-  const session = await requireAuth(req);
+export async function requireNonGuest(): Promise<Session | NextResponse> {
+  const session = await requireAuth();
   
   if (session instanceof NextResponse) return session;
   
@@ -29,4 +29,4 @@ export async function requireNonGuest(req: Request): Promise<Session | NextRespo
   }
   
   return session;
-} 
+}

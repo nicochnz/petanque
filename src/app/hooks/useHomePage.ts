@@ -33,7 +33,7 @@ export function useHomePage() {
   const [terrains, setTerrains] = useState<Terrain[]>([]);
   const [filteredTerrains, setFilteredTerrains] = useState<Terrain[]>([]);
   const [displayedTerrains, setDisplayedTerrains] = useState<Terrain[]>([]);
-  const terrainsPerPage = 5;
+  const terrainsPerPage = 9;
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Filters>({
@@ -63,13 +63,17 @@ export function useHomePage() {
   }, [session, status, router]);
 
   useEffect(() => {
+    if (status === 'loading' || !session) return;
     fetch('/api/terrains')
       .then(res => res.json())
       .then(data => {
-        setTerrains(data);
-        setFilteredTerrains(data);
-      });
-  }, []);
+        if (Array.isArray(data)) {
+          setTerrains(data);
+          setFilteredTerrains(data);
+        }
+      })
+      .catch(() => {});
+  }, [session, status]);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
     const R = 6371;

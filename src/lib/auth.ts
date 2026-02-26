@@ -1,10 +1,10 @@
-import NextAuth, { type NextAuthOptions } from 'next-auth'
+import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { connectToDatabase } from './mango'
-import { User } from '@/models/user'
-import type { Session } from 'next-auth'
-import type { JWT } from 'next-auth/jwt'
+import { connectToDatabase } from '@/lib/mango'
+import { User as UserModel } from '@/models/user'
+
+const DB_REFRESH_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -28,60 +28,81 @@ const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }: { user: any, account: any }) {
-      if (!user.email) return false
-
-      try {
-        await connectToDatabase()
-        
-        // Vérifier si l'utilisateur existe déjà
-        const existingUser = await User.findOne({ email: user.email })
-        
-        if (!existingUser) {
-          // Créer un nouvel utilisateur
-          await User.create({
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            role: 'user',
-          })
-        }
-        
-        return true
-      } catch (error) {
-        console.error('Erreur lors de la connexion:', error)
-        return false
-      }
-    },
-    async session({ session, token }: { session: Session, token: JWT }) {
-      if (session.user?.email) {
+    async signIn({ user, account }) {
+      if (account?.provider === 'google') {
         try {
-          await connectToDatabase()
-          const user = await User.findOne({ email: session.user.email })
-          
-          if (user) {
-            session.user = {
-              ...session.user,
-              id: user._id.toString(),
-              name: user.name,
+          await connectToDatabase();
+          const existingUser = await UserModel.findOne({ email: user.email });
+
+          if (!existingUser) {
+            const created = await UserModel.create({
               email: user.email,
+              name: user.name,
               image: user.image,
-              username: user.username,
-              role: user.role,
-            }
+              role: 'user'
+            });
+            user.id = created._id.toString();
+            user.role = 'user';
+          } else {
+            user.id = existingUser._id.toString();
+            user.role = existingUser.role || 'user';
+            user.username = existingUser.username;
+            user.image = existingUser.image;
+            user.name = existingUser.name;
           }
         } catch (error) {
-          console.error('Erreur lors de la récupération de la session:', error)
+          console.error('Erreur DB lors du signIn (non bloquant):', error);
+          // Don't block login if DB is slow -- JWT callback will sync later
         }
       }
-      return session
+      return true;
     },
-    async jwt({ token, user }: { token: JWT, user: any }) {
+
+    async jwt({ token, user, account, trigger }) {
       if (user) {
-        token.id = user.id
-        token.role = user.role
+        token.dbId = user.id;
+        token.role = user.role || (account?.provider === 'guest' ? 'guest' : 'user');
+        token.username = user.username;
+        token.image = user.image;
+        token.name = user.name;
+        token.lastDbSync = Date.now();
       }
-      return token
+
+      if (trigger === 'update') {
+        token.lastDbSync = 0;
+      }
+
+      const needsRefresh = !token.lastDbSync || (Date.now() - (token.lastDbSync as number)) > DB_REFRESH_INTERVAL_MS;
+
+      if (needsRefresh && token.email && token.role !== 'guest') {
+        try {
+          await connectToDatabase();
+          const dbUser = await UserModel.findOne({ email: token.email });
+          if (dbUser) {
+            token.dbId = dbUser._id.toString();
+            token.name = dbUser.name;
+            token.image = dbUser.image;
+            token.username = dbUser.username;
+            token.role = dbUser.role || 'user';
+          }
+          token.lastDbSync = Date.now();
+        } catch {
+          // Keep stale data on error, retry next time
+        }
+      }
+
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (session?.user) {
+        session.user.id = (token.dbId as string) || token.sub!;
+        session.user.role = (token.role as string) || 'user';
+        session.user.username = token.username as string | undefined;
+        if (token.image) session.user.image = token.image as string;
+        if (token.name) session.user.name = token.name as string;
+      }
+      return session;
     },
   },
   pages: {
@@ -92,7 +113,4 @@ const authOptions: NextAuthOptions = {
   },
 }
 
-const handler = NextAuth(authOptions)
-
-export { handler as GET, handler as POST }
 export default authOptions

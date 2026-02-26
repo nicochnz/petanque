@@ -5,33 +5,40 @@ import dynamic from 'next/dynamic';
 import StarRating from './components/starRating';
 import FilterPanel from './components/filterPanel';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 const MapSelectorComponent = dynamic(
   () => import('./components/mapSelector'),
-  { 
+  {
     ssr: false,
-    loading: () => <div className="h-full w-full flex items-center justify-center text-primary">Chargement de la carte...</div>
+    loading: () => (
+      <div className="h-full w-full flex items-center justify-center bg-light-dark/50">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-dark-muted">Chargement de la carte...</span>
+        </div>
+      </div>
+    )
   }
 );
 
 export default function HomePage() {
   const router = useRouter();
-  const { 
-    terrains, 
+  const {
+    terrains,
     allTerrains,
     displayedTerrains,
-    showForm, 
+    showForm,
     showFilters,
     filters,
     form,
-    setShowForm, 
+    setShowForm,
     setShowFilters,
     setFilters,
-    handleChange, 
-    handleSubmit, 
+    handleChange,
+    handleSubmit,
     handleMapClick,
     handleRating,
     getUserLocation,
@@ -44,30 +51,26 @@ export default function HomePage() {
   } = useHomePage();
 
   const [focusedTerrain, setFocusedTerrain] = useState<{ lat: number; lng: number } | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setShowDropdown(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const handleTerrainClick = (terrain: { location: { lat: number; lng: number } }) => {
-    setFocusedTerrain({
-      lat: terrain.location.lat,
-      lng: terrain.location.lng
-    });
-    
-    const mapSection = document.querySelector('[data-map-section]');
-    if (mapSection) {
-      mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  const handleMapClickWithPermission = (pos: { lat: number; lng: number; address?: string }) => {
-    if (!isGuest) {
-      handleMapClick(pos);
-    }
+    setFocusedTerrain({ lat: terrain.location.lat, lng: terrain.location.lng });
+    document.querySelector('[data-map-section]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-light">
-        <div className="text-xl text-primary">Chargement...</div>
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -75,376 +78,255 @@ export default function HomePage() {
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-light">
-        <div className="text-xl text-primary">Redirection...</div>
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <main className="min-h-screen bg-light">
-      <header className="bg-primary text-light px-4 py-3 flex justify-between items-center" role="banner">
-        <div className="flex items-center gap-3">
-          <figure className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-light">
-            <Image
-              src={session?.user?.image || '/default-avatar.jpg'}
-              alt={`Photo de profil de ${session?.user?.name || 'l\'utilisateur'}`}
-              fill
-              className="object-cover"
-            />
-          </figure>
-          <span className="text-sm hidden sm:block">
-            {session?.user?.name || 'Invité'}
-            {isGuest && <span className="text-light/80 ml-2">(Mode consultation)</span>}
-          </span>
-        </div>
-        
-        <div className="text-center flex-1 sm:flex-none">
-          <h1 className="text-lg font-serif font-bold sm:hidden">LE PÉTANQUE CLUB</h1>
-        </div>
-        
-        <nav className="flex items-center gap-2" role="navigation" aria-label="Navigation principale">
-          {!isGuest && (
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-light-dark">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              </svg>
+            </div>
+            <span className="text-sm font-bold text-dark tracking-tight">Petanque Club</span>
+          </div>
+
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => router.push('/profile')}
-              className="bg-primary-light hover:bg-primary-dark px-3 py-1 rounded text-sm transition-colors cursor-pointer hidden sm:block"
-              aria-label="Accéder à mon profil"
+              onClick={() => setShowFilters(true)}
+              className="text-xs text-dark-muted hover:text-dark px-3 py-1.5 rounded-lg hover:bg-light-dark transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              Mon Profil
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <span className="hidden sm:inline">Filtres</span>
             </button>
-          )}
-          <button
-            onClick={() => signOut()}
-            className="bg-primary-light hover:bg-primary-dark px-3 py-1 rounded text-sm transition-colors cursor-pointer hidden sm:block"
-            aria-label="Se déconnecter de l'application"
-          >
-            Se déconnecter
-          </button>
-          
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="sm:hidden p-2 cursor-pointer"
-            aria-label="Ouvrir le menu mobile"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-menu"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </nav>
+
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="flex items-center gap-1.5 cursor-pointer rounded-lg px-2 py-1 hover:bg-light-dark transition-colors"
+              >
+                <div className="relative w-7 h-7 rounded-full overflow-hidden ring-2 ring-light-dark">
+                  <Image
+                    src={session?.user?.image || '/default-avatar.jpg'}
+                    alt="Avatar"
+                    fill
+                    className="object-cover"
+                    sizes="28px"
+                  />
+                </div>
+                <svg className={`w-3 h-3 text-dark-muted transition-transform ${showDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showDropdown && (
+                <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-lg shadow-xl border border-light-dark overflow-hidden fade-in">
+                  <div className="px-3 py-2.5 border-b border-light-dark">
+                    <p className="text-xs font-semibold text-dark truncate">{session?.user?.name || 'Invite'}</p>
+                    {isGuest && <p className="text-[10px] text-dark-muted">Mode consultation</p>}
+                  </div>
+                  {!isGuest && (
+                    <button
+                      onClick={() => { router.push('/profile'); setShowDropdown(false); }}
+                      className="w-full text-left px-3 py-2 text-xs text-dark hover:bg-light transition-colors cursor-pointer"
+                    >
+                      Mon profil
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { signOut(); setShowDropdown(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                  >
+                    Deconnexion
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
 
-      {isMobileMenuOpen && (
-        <nav 
-          id="mobile-menu"
-          className="bg-primary border-t border-primary-light sm:hidden"
-          role="navigation"
-          aria-label="Menu mobile"
-        >
-          <div className="px-4 py-3 space-y-3">
+      {/* Hero bar */}
+      <section className="bg-primary text-white">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-serif font-bold leading-tight">
+                Trouvez votre terrain
+              </h2>
+              <p className="text-sm text-white/60 mt-1">
+                {allTerrains.length} terrain{allTerrains.length !== 1 ? 's' : ''} partage{allTerrains.length !== 1 ? 's' : ''} par la communaute
+              </p>
+            </div>
             {!isGuest && (
               <button
                 onClick={() => {
-                  router.push('/profile');
-                  setIsMobileMenuOpen(false);
+                  document.querySelector('[data-map-section]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }}
-                className="block w-full text-left text-light hover:text-light/80 transition-colors cursor-pointer"
-                aria-label="Accéder à mon profil"
+                className="btn-secondary text-xs whitespace-nowrap"
               >
-                Mon Profil
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Ajouter un terrain
               </button>
             )}
-            <button
-              onClick={() => {
-                signOut();
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-light hover:text-light/80 transition-colors cursor-pointer"
-              aria-label="Se déconnecter de l'application"
-            >
-              Se déconnecter
-            </button>
           </div>
-        </nav>
-      )}
-
-      <section className="bg-primary text-light" aria-labelledby="hero-title">
-        <div className="w-full">
-          <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12 px-4 py-8">
-            <figure className="lg:w-2/5 w-full">
-              <div className="relative h-80 sm:h-96 lg:h-[500px] w-full overflow-hidden">
-                <Image
-                  src="/ball_player.svg"
-                  alt="Illustration d'un joueur de pétanque en action, représentant l'esprit sportif et convivial du jeu"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            </figure>
-            
-            <div className="lg:w-1/2 w-full text-center lg:text-left">
-              <h1 id="hero-title" className="text-3xl sm:text-4xl lg:text-6xl font-serif font-bold mb-4 sm:mb-6">
-                Bienvenue sur le <span className="uppercase">PÉTANQUE CLUB</span>
-              </h1>
-              <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 italic text-light/90">
-                &ldquo;Tu tires ou tu pointes ?&rdquo;
-              </p>
-              <p className="text-base sm:text-lg text-light/80 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                L&apos;application collaborative de la pétanque ! Découvrez et partagez les meilleurs terrains de pétanque près de chez vous. <span className="font-bold">Créez un compte</span> pour ajouter de nouveaux terrains.
-              </p>
-              
-              <aside className="flex justify-center lg:justify-start mb-8" aria-label="Statistiques">
-                <div className="text-center lg:text-left">
-                  <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-secondary block" aria-label={`${allTerrains.length} terrains`}>{allTerrains.length}</span>
-                  <span className="text-base sm:text-lg text-light/90">Terrains référencés</span>
-                </div>
-              </aside>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <button 
-                  onClick={() => {
-                    const mapSection = document.querySelector('[data-map-section]');
-                    if (mapSection) {
-                      mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }}
-                  className="btn-secondary w-full sm:w-auto"
-                  aria-label="Aller à la section carte interactive pour trouver un terrain"
-                >
-                  Trouver un terrain
-                </button>
-              </div>
+          {isGuest && (
+            <div className="mt-3 bg-white/8 rounded-lg px-3 py-2 text-xs text-white/60 inline-block">
+              Mode consultation — connectez-vous pour contribuer.
             </div>
-          </div>
+          )}
         </div>
       </section>
 
-      <section className="bg-light py-12 sm:py-16" data-map-section aria-labelledby="map-title">
-        <div className="max-w-7xl mx-auto px-4">
-          <header className="text-center mb-8 sm:mb-12">
-            <h2 id="map-title" className="text-3xl sm:text-4xl font-serif font-bold text-primary mb-4 uppercase">
-              La carte interactive.
-            </h2>
-            <div className="space-y-2 text-primary">
-              <p className="text-base sm:text-lg">Explorez les terrains existants, ajoutez les vôtres.</p>
-              {isGuest && (
-                <p className="text-sm sm:text-base bg-red-300">
-                  <span className="font-bold">MODE CONSULTATION :</span> Vous pouvez explorer les terrains mais pas en ajouter de nouveaux ni mettre de note.
-                </p>
-              )}
-              <p className="text-sm sm:text-base">Connectez-vous avec Google pour contribuer à la communauté !</p>
-            </div>
-          </header>
-
-          <article className="bg-surface rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-light-dark">
-            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-primary mb-2">Carte interactive</h3>
-                <p className="text-dark/70 text-sm sm:text-base">
-                  {isGuest 
-                    ? "Explorez les terrains existants" 
-                    : "Cliquez sur la carte pour ajouter un nouveau terrain"
-                  }
-                </p>
-              </div>
-              <button
-                onClick={() => setShowFilters(true)}
-                className="btn-secondary w-full sm:w-auto"
-                aria-label={`Ouvrir les filtres. ${terrains.length} terrains disponibles`}
-              >
-                <span aria-hidden="true">🔍</span> Filtres ({terrains.length})
-              </button>
-            </header>
-            
-            <div className="h-64 sm:h-80 lg:h-[500px] rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-2 border-light-dark" role="img" aria-label="Carte interactive des terrains de pétanque">
+      {/* Map */}
+      <section data-map-section>
+        <div className="max-w-7xl mx-auto px-4 py-5">
+          <div className="rounded-xl overflow-hidden shadow-sm border border-light-dark">
+            <div className="h-[45vh] sm:h-[50vh] lg:h-[55vh]">
               <MapSelectorComponent
                 terrains={displayedTerrains.map(t => ({
                   ...t.location,
+                  _id: t._id,
                   name: t.name,
                   description: t.description,
                   imageUrl: t.imageUrl
                 }))}
-                onSelectPosition={handleMapClickWithPermission}
+                onSelectPosition={(pos) => { if (!isGuest) handleMapClick(pos); }}
                 focusedTerrain={focusedTerrain}
               />
             </div>
-          </article>
+          </div>
         </div>
       </section>
 
-      <section className="bg-light py-12 sm:py-16" aria-labelledby="terrains-title">
+      {/* Terrains */}
+      <section className="pb-16">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 id="terrains-title" className="text-3xl sm:text-4xl font-serif font-bold text-primary mb-8 sm:mb-12 text-center uppercase">
-            Tous les terrains.
-          </h2>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" role="list" aria-label="Liste des terrains de pétanque">
-            {displayedTerrains.map(terrain => (
-              <article 
-                key={terrain._id} 
-                className="bg-white rounded-xl shadow-md border-2 border-primary/20 group cursor-pointer hover:shadow-xl hover:-translate-y-1 hover:border-primary/40 transition-all duration-300 overflow-hidden"
-                onClick={() => handleTerrainClick(terrain)}
-                role="listitem"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleTerrainClick(terrain);
-                  }
-                }}
-                aria-label={`Terrain ${terrain.name}. ${terrain.description}. Note moyenne: ${terrain.rating?.average || 0} sur 5. Cliquer pour voir sur la carte.`}
-              >
-                {terrain.imageUrl && (
-                  <figure className="relative h-40 sm:h-44 overflow-hidden">
-                    <Image 
-                      src={terrain.imageUrl} 
-                      alt={`Photo du terrain de pétanque ${terrain.name}`} 
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </figure>
-                )}
-                <div className="p-3 sm:p-4">
-                  <h3 className="text-base sm:text-lg font-bold mb-2 text-primary group-hover:text-primary-dark transition-colors line-clamp-1">
-                    {terrain.name}
-                  </h3>
-                  <p className="mb-3 text-dark/70 leading-relaxed text-xs sm:text-sm line-clamp-2">{terrain.description}</p>
-                  
-                  <div className="mb-2" onClick={(e) => e.stopPropagation()}>
-                    <StarRating
-                      rating={terrain.rating?.average || 0}
-                      count={terrain.rating?.count || 0}
-                      onRate={isGuest ? undefined : (rating) => handleRating(terrain._id!, rating)}
-                      size="sm"
-                    />
-                  </div>
-                  
-                  {!isGuest && terrain.createdBy === session?.user?.email && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('Êtes-vous sûr de vouloir supprimer ce terrain ?')) {
-                          handleDeleteTerrain(terrain._id!);
-                        }
-                      }}
-                      className="text-red-500 hover:text-red-700 text-xs cursor-pointer"
-                    >
-                      Supprimer
-                    </button>
-                  )}
-                </div>
-              </article>
-            ))}
+          <div className="flex items-baseline justify-between mb-5">
+            <h2 className="text-lg font-bold text-dark">Terrains</h2>
+            <span className="text-[11px] text-dark-muted">
+              {displayedTerrains.length} sur {allTerrains.length}
+            </span>
           </div>
 
-          {hasMoreTerrains && (
-            <div className="mt-8 sm:mt-12 text-center">
-              <button
-                onClick={loadMoreTerrains}
-                className="btn-secondary inline-flex items-center w-full sm:w-auto"
-                aria-label="Charger plus de terrains"
-              >
-                <span>Voir plus de terrains</span>
-                <svg 
-                  className="w-5 h-5 ml-2" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
+          {displayedTerrains.length === 0 ? (
+            <div className="text-center py-16 text-dark-muted text-sm">
+              Aucun terrain disponible pour le moment.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {displayedTerrains.map(terrain => (
+                <article
+                  key={terrain._id}
+                  className="bg-white rounded-xl border border-light-dark group cursor-pointer hover:shadow-md hover:-translate-y-px transition-all duration-150 overflow-hidden"
+                  onClick={() => handleTerrainClick(terrain)}
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTerrainClick(terrain); } }}
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                  <div className="relative aspect-[16/10] bg-light-dark overflow-hidden">
+                    {terrain.imageUrl ? (
+                      <Image
+                        src={terrain.imageUrl}
+                        alt={terrain.name}
+                        fill
+                        className="object-cover group-hover:scale-[1.02] transition-transform duration-200"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-light-dark">
+                        <svg className="w-8 h-8 text-dark/10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3.5">
+                    <h3 className="text-[13px] font-semibold text-dark mb-0.5 line-clamp-1 group-hover:text-primary transition-colors">
+                      {terrain.name}
+                    </h3>
+                    <p className="text-[11px] text-dark-muted leading-relaxed line-clamp-2 mb-2.5">{terrain.description}</p>
+
+                    <div className="flex items-center justify-between">
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <StarRating
+                          rating={terrain.rating?.average || 0}
+                          count={terrain.rating?.count || 0}
+                          onRate={isGuest ? undefined : (rating) => handleRating(terrain._id!, rating)}
+                          size="sm"
+                        />
+                      </div>
+                      {!isGuest && terrain.createdBy === session?.user?.email && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm('Supprimer ce terrain ?')) handleDeleteTerrain(terrain._id!);
+                          }}
+                          className="text-[10px] text-dark-muted hover:text-red-500 transition-colors cursor-pointer"
+                        >
+                          Supprimer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {hasMoreTerrains && (
+            <div className="mt-8 text-center">
+              <button onClick={loadMoreTerrains} className="btn-outline-primary text-xs">
+                Voir plus
               </button>
             </div>
           )}
         </div>
       </section>
 
+      {/* Add terrain modal */}
       {showForm && !isGuest && (
-        <aside 
-          className="fixed inset-0 bg-dark/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-title"
-          aria-describedby="modal-description"
-        >
-          <div className="bg-surface rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-light-dark max-h-[90vh] overflow-y-auto">
-            <h2 id="modal-title" className="text-xl sm:text-2xl font-bold mb-6 text-primary">Nouveau terrain</h2>
-            <p id="modal-description" className="sr-only">Formulaire pour ajouter un nouveau terrain de pétanque</p>
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+          <div className="bg-white rounded-xl p-5 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-dark">Nouveau terrain</h2>
+              <button onClick={() => setShowForm(false)} className="text-dark-muted hover:text-dark cursor-pointer p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-dark mb-2">Nom du terrain</label>
-                <input
-                  id="name"
-                  type="text"
-                  name="name"
-                  placeholder="Ex: Terrain de la place du village"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                  className="input-primary"
-                  aria-describedby="name-help"
-                />
-                <p id="name-help" className="sr-only">Entrez un nom descriptif pour le terrain</p>
+                <label htmlFor="name" className="block text-[11px] font-medium text-dark-muted mb-1">Nom</label>
+                <input id="name" type="text" name="name" placeholder="Ex: Place du village" value={form.name} onChange={handleChange} required className="input-primary" />
               </div>
-              
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-dark mb-2">Description</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  placeholder="Décrivez le terrain (état, équipements, etc.)"
-                  value={form.description}
-                  onChange={handleChange}
-                  required
-                  rows={3}
-                  className="input-primary resize-none"
-                  aria-describedby="description-help"
-                />
-                <p id="description-help" className="sr-only">Décrivez l&apos;état du terrain et ses équipements</p>
+                <label htmlFor="description" className="block text-[11px] font-medium text-dark-muted mb-1">Description</label>
+                <textarea id="description" name="description" placeholder="Etat, equipements..." value={form.description} onChange={handleChange} required rows={3} className="input-primary resize-none" />
               </div>
-              
               <div>
-                <label htmlFor="image" className="block text-sm font-medium text-dark mb-2">Photo (optionnelle)</label>
-                <input
-                  id="image"
-                  type="file"
-                  name="image"
-                  accept="image/*"
-                  onChange={handleChange}
-                  className="input-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-light file:text-primary hover:file:bg-light-dark cursor-pointer"
-                  aria-describedby="image-help"
-                />
-                <p id="image-help" className="sr-only">Ajoutez une photo du terrain si disponible</p>
+                <label htmlFor="image" className="block text-[11px] font-medium text-dark-muted mb-1">Photo</label>
+                <input id="image" type="file" name="image" accept="image/*" onChange={handleChange} className="input-primary file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-light file:text-primary hover:file:bg-light-dark cursor-pointer text-xs" />
               </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <button 
-                  type="submit" 
-                  className="btn-secondary flex-1"
-                  aria-label="Ajouter le terrain à la base de données"
-                >
-                  Ajouter le terrain
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => setShowForm(false)}
-                  className="btn-outline-primary flex-1"
-                  aria-label="Annuler l'ajout du terrain"
-                >
-                  Annuler
-                </button>
+              <div className="flex gap-2.5 pt-1">
+                <button type="submit" className="btn-secondary flex-1">Ajouter</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-outline-primary flex-1">Annuler</button>
               </div>
             </form>
           </div>
-        </aside>
+        </div>
       )}
 
       {showFilters && (
@@ -457,38 +339,11 @@ export default function HomePage() {
         />
       )}
 
-      <footer className="bg-primary text-light mt-16" role="contentinfo">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <section>
-              <h3 className="text-xl font-bold mb-4 uppercase">TERRAINS DE PÉTANQUE</h3>
-              <p className="text-light/90 leading-relaxed">
-                La communauté collaborative pour découvrir et partager les meilleurs terrains de pétanque.
-              </p>
-            </section>
-            
-            <section>
-              <h4 className="text-lg font-semibold mb-4 uppercase">À PROPOS</h4>
-              <ul className="space-y-2 text-light/90" role="list">
-                <li className="flex items-center gap-2">
-                  <span className="text-secondary" aria-hidden="true">★</span>
-                  Qui sommes-nous ?
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-secondary" aria-hidden="true">★</span>
-                  Contact
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-secondary" aria-hidden="true">★</span>
-                  Mentions légales
-                </li>
-              </ul>
-            </section>
-          </div>
-          
-          <div className="border-t border-primary-light mt-8 pt-8 text-center text-light/70">
-            <p>&copy; 2025 Terrains de Pétanque - Fait avec <span aria-label="amour">❤️</span> pour la communauté</p>
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-light-dark">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between text-[11px] text-dark-muted">
+          <span>&copy; 2025 Petanque Club</span>
+          <span className="hidden sm:inline">Fait par la communaute</span>
         </div>
       </footer>
     </main>

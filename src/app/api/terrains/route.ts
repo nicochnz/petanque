@@ -5,12 +5,12 @@ import { NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]/route';
-import { rateLimiters } from '@/lib/rateLimit';
+import authOptions from '@/lib/auth';
+import { rateLimiters, getRateLimitIdentifier } from '@/lib/rateLimit';
 import type { Session } from 'next-auth';
 
-export async function GET() {
-  const { success } = await rateLimiters.general.limit();
+export async function GET(req: Request) {
+  const { success } = await rateLimiters.general.limit(getRateLimitIdentifier(req));
   
   if (!success) {
     return NextResponse.json(
@@ -20,7 +20,7 @@ export async function GET() {
   }
 
   await connectToDatabase();
-  const terrains = await Terrain.find({}).lean();
+  const terrains = await Terrain.find({ isDeleted: { $ne: true } }).lean();
   return NextResponse.json(terrains);
 }
 
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { success, limit, reset, remaining } = await rateLimiters.addTerrain.limit();
+  const { success, limit, reset, remaining } = await rateLimiters.addTerrain.limit(getRateLimitIdentifier(req, session.user.email));
   
   if (!success) {
     return NextResponse.json(
@@ -169,13 +169,25 @@ export async function POST(req: Request) {
       );
     }
 
+    const latNum = parseFloat(data.location.lat);
+    const lngNum = parseFloat(data.location.lng);
+
+    if (isNaN(latNum) || isNaN(lngNum)) {
+      return NextResponse.json(
+        { error: 'Coordonnées invalides' }, 
+        { status: 400 }
+      );
+    }
+
     const newTerrain = await Terrain.create({
-      ...data,
+      name: String(data.name).slice(0, 200),
+      description: String(data.description).slice(0, 2000),
       location: {
-        lat: parseFloat(data.location.lat),
-        lng: parseFloat(data.location.lng),
-        address: data.location.address || ''
+        lat: latNum,
+        lng: lngNum,
+        address: data.location.address ? String(data.location.address).slice(0, 500) : ''
       },
+      imageUrl: data.imageUrl || null,
       rating: { average: 0, count: 0, total: 0 },
       createdBy: session.user.email,
       createdAt: new Date()

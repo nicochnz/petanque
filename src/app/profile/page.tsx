@@ -105,30 +105,24 @@ export default function ProfilePage() {
               {user.email}
             </p>
 
-            <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" aria-label="Statistiques de l'utilisateur">
+            <section className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8" aria-label="Statistiques de l'utilisateur">
               <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`${stats.terrainsAdded} terrains ajoutés`}>
+                <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
                   {stats.terrainsAdded}
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Terrains ajoutés</div>
               </article>
               <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`${stats.totalRatings} notes données`}>
+                <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
                   {stats.totalRatings}
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Notes données</div>
               </article>
               <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`Note moyenne de ${stats.averageRating.toFixed(1)} sur 5`}>
+                <div className="text-xl sm:text-2xl font-bold text-primary mb-1">
                   {stats.averageRating.toFixed(1)}
                 </div>
                 <div className="text-xs sm:text-sm text-dark/70">Note moyenne</div>
-              </article>
-              <article className="bg-light rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary mb-1" aria-label={`Dernière activité: ${stats.lastActivity}`}>
-                  {stats.lastActivity}
-                </div>
-                <div className="text-xs sm:text-sm text-dark/70">Dernière activité</div>
               </article>
             </section>
 

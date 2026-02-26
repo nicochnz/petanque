@@ -45,6 +45,13 @@ export async function GET() {
   }
 }
 
+const ALLOWED_ACTIONS: Record<string, number> = {
+  'add_terrain': 10,
+  'add_comment': 5,
+  'rate_terrain': 3,
+  'submit_report': 2,
+};
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions) as Session | null;
@@ -56,14 +63,16 @@ export async function POST(request: NextRequest) {
     }
 
     await connectToDatabase();
-    const { action, amount } = await request.json();
+    const { action } = await request.json();
 
-    if (!action || !amount) {
+    if (!action || !ALLOWED_ACTIONS[action]) {
       return NextResponse.json(
-        { error: 'Action et montant requis' },
+        { error: 'Action invalide' },
         { status: 400 }
       );
     }
+
+    const amount = ALLOWED_ACTIONS[action];
 
     const user = await User.findOne({ email: session.user.email });
     if (!user) {
