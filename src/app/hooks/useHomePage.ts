@@ -141,13 +141,25 @@ export function useHomePage() {
       formData.append('image', form.image);
     }
 
-    const res = await fetch('/api/terrains', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const res = await fetch('/api/terrains', {
+        method: 'POST',
+        body: formData,
+      });
 
-    const savedTerrain = await res.json();
-    setTerrains((prev) => [...prev, savedTerrain]);
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || 'Erreur lors de l\'ajout du terrain');
+        return;
+      }
+
+      const savedTerrain = await res.json();
+      if (savedTerrain?.location?.lat && savedTerrain?.location?.lng) {
+        setTerrains((prev) => [...prev, savedTerrain]);
+      }
+    } catch {
+      alert('Erreur de connexion');
+    }
 
     setForm({ 
       name: '', 

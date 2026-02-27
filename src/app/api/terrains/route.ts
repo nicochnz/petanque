@@ -96,16 +96,12 @@ export async function POST(req: Request) {
       try {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const filename = `${Date.now()}-${file.name}`;
-        const path = join(process.cwd(), 'public', 'uploads', filename);
-        await writeFile(path, buffer);
+        const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${file.name.substring(file.name.lastIndexOf('.'))}`;
+        const uploadPath = join(process.cwd(), 'public', 'uploads', filename);
+        await writeFile(uploadPath, buffer);
         imageUrl = `/uploads/${filename}`;
       } catch (error) {
-        console.error('Erreur lors de l\'upload de l\'image:', error);
-        return NextResponse.json(
-          { error: 'Erreur lors de l\'upload de l\'image' },
-          { status: 500 }
-        );
+        console.error('Upload image ignoré (filesystem read-only):', error);
       }
     }
 
