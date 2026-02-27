@@ -94,27 +94,43 @@ export async function POST(req: Request) {
     const file = formData.get('image') as File | null;
 
     if (file && file.size > 0) {
-      try {
-        const ext = file.name.substring(file.name.lastIndexOf('.'));
-        const pathname = `terrains/${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
+      const ext = file.name.substring(file.name.lastIndexOf('.'));
+      const pathname = `terrains/${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
 
-        if (process.env.BLOB_READ_WRITE_TOKEN) {
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        try {
           const blob = await put(pathname, file, {
             access: 'public',
             addRandomSuffix: false,
             contentType: file.type || undefined
           });
           imageUrl = blob.url;
-        } else {
+        } catch (error) {
+          console.error('Erreur upload Blob:', error);
+          return NextResponse.json(
+            { error: 'Échec de l\'upload de l\'image. Vérifiez la configuration Vercel Blob (BLOB_READ_WRITE_TOKEN).' },
+            { status: 500 }
+          );
+        }
+      } else if (process.env.VERCEL) {
+        return NextResponse.json(
+          {
+            error: 'Upload d\'image non configuré sur Vercel. Ajoutez BLOB_READ_WRITE_TOKEN dans les variables d\'environnement du projet (Storage > petanque-blob > Connect to Project).',
+            code: 'BLOB_TOKEN_MISSING'
+          },
+          { status: 503 }
+        );
+      } else {
+        try {
           const bytes = await file.arrayBuffer();
           const buffer = Buffer.from(bytes);
           const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
           const uploadPath = join(process.cwd(), 'public', 'uploads', filename);
           await writeFile(uploadPath, buffer);
           imageUrl = `/uploads/${filename}`;
+        } catch (error) {
+          console.error('Upload image ignoré (local):', error);
         }
-      } catch (error) {
-        console.error('Upload image ignoré:', error);
       }
     }
 
