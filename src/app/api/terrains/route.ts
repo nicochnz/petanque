@@ -4,6 +4,7 @@ import { User } from '@/models/user';
 import { NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { put } from '@vercel/blob';
 import { getServerSession } from 'next-auth/next';
 import authOptions from '@/lib/auth';
 import { rateLimiters, getRateLimitIdentifier } from '@/lib/rateLimit';
@@ -89,19 +90,31 @@ export async function POST(req: Request) {
       );
     }
 
-    let imageUrl = null;
+    let imageUrl: string | null = null;
     const file = formData.get('image') as File | null;
 
     if (file && file.size > 0) {
       try {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${file.name.substring(file.name.lastIndexOf('.'))}`;
-        const uploadPath = join(process.cwd(), 'public', 'uploads', filename);
-        await writeFile(uploadPath, buffer);
-        imageUrl = `/uploads/${filename}`;
+        const ext = file.name.substring(file.name.lastIndexOf('.'));
+        const pathname = `terrains/${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
+
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+          const blob = await put(pathname, file, {
+            access: 'public',
+            addRandomSuffix: false,
+            contentType: file.type || undefined
+          });
+          imageUrl = blob.url;
+        } else {
+          const bytes = await file.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
+          const uploadPath = join(process.cwd(), 'public', 'uploads', filename);
+          await writeFile(uploadPath, buffer);
+          imageUrl = `/uploads/${filename}`;
+        }
       } catch (error) {
-        console.error('Upload image ignoré (filesystem read-only):', error);
+        console.error('Upload image ignoré:', error);
       }
     }
 
