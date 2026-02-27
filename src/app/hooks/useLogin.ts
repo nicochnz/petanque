@@ -7,17 +7,14 @@ export function useLogin() {
   const router = useRouter();
 
   useEffect(() => {
-    if (session) {
-      router.push('/');
+    if (status === 'authenticated' && session) {
+      router.replace('/');
     }
-  }, [session, router]);
-
-  const isLoading = status === 'loading';
-  const isAuthenticated = !!session;
+  }, [session, status, router]);
 
   return {
-    isLoading,
-    isAuthenticated,
+    isLoading: status === 'loading',
+    isAuthenticated: status === 'authenticated',
     session
   };
 }

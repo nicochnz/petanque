@@ -5,18 +5,13 @@ interface UserStats {
   terrainsAdded: number;
   totalRatings: number;
   averageRating: number;
-  lastActivity: string;
 }
 
 interface Terrain {
   _id: string;
   name: string;
   description: string;
-  location: {
-    lat: number;
-    lng: number;
-    address?: string;
-  };
+  location: { lat: number; lng: number; address?: string };
   imageUrl?: string;
   createdAt: string;
 }
@@ -27,7 +22,6 @@ export function useProfile() {
     terrainsAdded: 0,
     totalRatings: 0,
     averageRating: 0,
-    lastActivity: ''
   });
   const [recentTerrains, setRecentTerrains] = useState<Terrain[]>([]);
   const [userName, setUserName] = useState<string>('');
@@ -37,32 +31,24 @@ export function useProfile() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!session?.user) return;
-      
+
       setIsLoading(true);
       try {
-        const [statsRes, terrainsRes, userRes] = await Promise.all([
-          fetch('/api/user/stats'),
-          fetch('/api/user/terrains'),
-          fetch('/api/user/profile')
-        ]);
-
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
-        }
-
-        if (terrainsRes.ok) {
-          const terrainsData = await terrainsRes.json();
-          setRecentTerrains(terrainsData);
-        }
-
-        if (userRes.ok) {
-          const userData = await userRes.json();
-          setUserName(userData.name || session.user.name || 'Utilisateur');
+        const res = await fetch('/api/user/me');
+        if (res.ok) {
+          const data = await res.json();
+          setStats({
+            terrainsAdded: data.stats.terrainsAdded,
+            totalRatings: data.stats.totalRatings,
+            averageRating: data.stats.averageRating,
+          });
+          setRecentTerrains(data.recentTerrains);
+          setUserName(data.profile.name || session.user.name || 'Utilisateur');
         } else {
           setUserName(session.user.name || 'Utilisateur');
         }
       } catch {
+        setUserName(session.user.name || 'Utilisateur');
       } finally {
         setIsLoading(false);
       }
@@ -71,16 +57,12 @@ export function useProfile() {
     fetchUserData();
   }, [session, refreshTrigger]);
 
-  const refetch = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
-
   return {
     stats,
     recentTerrains,
     isLoading,
     user: session?.user,
     userName,
-    refetch
+    refetch: () => setRefreshTrigger(prev => prev + 1),
   };
 }

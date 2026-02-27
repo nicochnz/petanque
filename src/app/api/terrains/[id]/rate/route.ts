@@ -14,7 +14,7 @@ interface Rating {
 
 export async function POST(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions) as Session | null;
@@ -32,7 +32,7 @@ export async function POST(
 
     await connectToDatabase();
 
-    const terrainId = context.params.id;
+    const { id: terrainId } = await context.params;
     const terrain = await Terrain.findById(terrainId);
     if (!terrain) {
       return NextResponse.json(

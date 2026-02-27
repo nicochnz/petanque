@@ -5,62 +5,69 @@ import { connectToDatabase } from '@/lib/mango';
 import { User } from '@/models/user';
 import type { Session } from 'next-auth';
 
+interface UserStats {
+  terrainsCreated: number;
+  commentsPosted: number;
+  terrainsRated: number;
+  reportsSubmitted: number;
+}
+
 const BADGE_DEFINITIONS = {
   'first_terrain': {
     id: 'first_terrain',
     name: 'Premier Terrain',
     description: 'A ajouté son premier terrain',
     icon: '🏟️',
-    condition: (stats: any) => stats.terrainsCreated >= 1
+    condition: (stats: UserStats) => stats.terrainsCreated >= 1
   },
   'terrain_master': {
     id: 'terrain_master',
     name: 'Maître des Terrains',
     description: 'A ajouté 10 terrains',
     icon: '🏆',
-    condition: (stats: any) => stats.terrainsCreated >= 10
+    condition: (stats: UserStats) => stats.terrainsCreated >= 10
   },
   'social_butterfly': {
     id: 'social_butterfly',
     name: 'Papillon Social',
     description: 'A posté 20 commentaires',
     icon: '🦋',
-    condition: (stats: any) => stats.commentsPosted >= 20
+    condition: (stats: UserStats) => stats.commentsPosted >= 20
   },
   'critic': {
     id: 'critic',
     name: 'Critique',
     description: 'A noté 15 terrains',
     icon: '⭐',
-    condition: (stats: any) => stats.terrainsRated >= 15
+    condition: (stats: UserStats) => stats.terrainsRated >= 15
   },
   'guardian': {
     id: 'guardian',
     name: 'Gardien',
     description: 'A signalé 5 contenus inappropriés',
     icon: '🛡️',
-    condition: (stats: any) => stats.reportsSubmitted >= 5
+    condition: (stats: UserStats) => stats.reportsSubmitted >= 5
   },
   'points_collector': {
     id: 'points_collector',
     name: 'Collectionneur',
     description: 'A atteint 500 points',
     icon: '💰',
-    condition: (stats: any, points: number) => points >= 500
+    condition: (_stats: UserStats, points: number) => points >= 500
   },
   'level_5': {
     id: 'level_5',
     name: 'Niveau 5',
     description: 'A atteint le niveau 5',
     icon: '🎖️',
-    condition: (stats: any, points: number, level: number) => level >= 5
+    condition: (_stats: UserStats, _points: number, level: number) => level >= 5
   },
   'level_10': {
     id: 'level_10',
     name: 'Niveau 10',
     description: 'A atteint le niveau 10',
     icon: '👑',
-    condition: (stats: any, points: number, level: number) => level >= 10
+    condition: (_stats: UserStats, _points: number, level: number) => level >= 10
   }
 };
 
@@ -91,8 +98,8 @@ export async function GET() {
 
     const availableBadges = Object.values(BADGE_DEFINITIONS).map(badge => ({
       ...badge,
-      unlocked: currentBadges.some((b: any) => b.id === badge.id),
-      canUnlock: badge.condition(stats, points, level) && !currentBadges.some((b: any) => b.id === badge.id)
+      unlocked: currentBadges.some((b: { id: string }) => b.id === badge.id),
+      canUnlock: badge.condition(stats, points, level) && !currentBadges.some((b: { id: string }) => b.id === badge.id)
     }));
 
     return NextResponse.json({
@@ -152,7 +159,7 @@ export async function POST(request: NextRequest) {
     const level = user.level || 1;
     const currentBadges = user.badges || [];
 
-    if (currentBadges.some((b: any) => b.id === badgeId)) {
+    if (currentBadges.some((b: { id: string }) => b.id === badgeId)) {
       return NextResponse.json(
         { error: 'Badge déjà débloqué' },
         { status: 400 }
