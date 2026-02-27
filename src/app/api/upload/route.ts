@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join, extname } from 'path';
+import { put } from '@vercel/blob';
 import { getServerSession } from 'next-auth/next';
 import authOptions from '@/lib/auth';
 import type { Session } from 'next-auth';
@@ -72,20 +73,30 @@ export async function POST(request: Request) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    const safeFilename = `${type}-${uniqueSuffix}${ext}`;
-    
-    const uploadDir = join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
-    const filepath = join(uploadDir, safeFilename);
+    const pathname = `${type}-${uniqueSuffix}${ext}`;
 
-    await writeFile(filepath, buffer);
+    let url: string;
+
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blob = await put(pathname, file, {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: file.type || undefined
+      });
+      url = blob.url;
+    } else {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const uploadDir = join(process.cwd(), 'public', 'uploads');
+      await mkdir(uploadDir, { recursive: true });
+      const filepath = join(uploadDir, pathname);
+      await writeFile(filepath, buffer);
+      url = `/uploads/${pathname}`;
+    }
 
     return NextResponse.json({ 
-      url: `/uploads/${safeFilename}`,
+      url,
       success: true 
     });
   } catch (error) {

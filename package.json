@@ -15,6 +15,7 @@
     "@auth/mongodb-adapter": "^3.9.1",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.35.0",
+    "@vercel/blob": "^2.3.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
     "leaflet": "^1.9.4",

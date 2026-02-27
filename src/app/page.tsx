@@ -345,7 +345,6 @@ export default function HomePage() {
       <footer className="border-t border-light-dark">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between text-[11px] text-dark-muted">
           <span>&copy; 2025 Petanque Club</span>
-          <span className="hidden sm:inline">Fait par la communaute</span>
         </div>
       </footer>
     </main>
