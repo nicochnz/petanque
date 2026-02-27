@@ -194,13 +194,15 @@ export default function HomePage() {
           <div className="rounded-xl overflow-hidden shadow-sm border border-light-dark">
             <div className="h-[45vh] sm:h-[50vh] lg:h-[55vh]">
               <MapSelectorComponent
-                terrains={displayedTerrains.map(t => ({
-                  ...t.location,
-                  _id: t._id,
-                  name: t.name,
-                  description: t.description,
-                  imageUrl: t.imageUrl
-                }))}
+                terrains={displayedTerrains
+                  .filter(t => t.location?.lat != null && t.location?.lng != null)
+                  .map(t => ({
+                    ...t.location,
+                    _id: t._id,
+                    name: t.name,
+                    description: t.description,
+                    imageUrl: t.imageUrl
+                  }))}
                 onSelectPosition={(pos) => { if (!isGuest) handleMapClick(pos); }}
                 focusedTerrain={focusedTerrain}
               />
