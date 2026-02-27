@@ -200,11 +200,12 @@ const MapSelectorComponent = ({ terrains, onSelectPosition, focusedTerrain }: Ma
                   <div className="text-center min-w-[200px]">
                     {terrain.imageUrl && (
                       <div className="relative w-full h-24 mb-2 rounded overflow-hidden">
-                        <Image
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
                           src={terrain.imageUrl}
                           alt={terrain.name || 'Terrain'}
-                          fill
-                          className="object-cover"
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       </div>
                     )}

@@ -113,13 +113,13 @@ export default function HomePage() {
                 onClick={() => setShowDropdown(!showDropdown)}
                 className="flex items-center gap-1.5 cursor-pointer rounded-lg px-2 py-1 hover:bg-light-dark transition-colors"
               >
-                <div className="relative w-7 h-7 rounded-full overflow-hidden ring-2 ring-light-dark">
-                  <Image
+                <div className="relative w-7 h-7 rounded-full overflow-hidden ring-2 ring-light-dark bg-light-dark">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={session?.user?.image || '/default-avatar.jpg'}
                     alt="Avatar"
-                    fill
-                    className="object-cover"
-                    sizes="28px"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.jpg'; }}
                   />
                 </div>
                 <svg className={`w-3 h-3 text-dark-muted transition-transform ${showDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,13 +235,13 @@ export default function HomePage() {
                 >
                   <div className="relative aspect-[16/10] bg-light-dark overflow-hidden">
                     {terrain.imageUrl ? (
-                      <Image
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
                         src={terrain.imageUrl}
                         alt={terrain.name}
-                        fill
-                        className="object-cover group-hover:scale-[1.02] transition-transform duration-200"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200"
                         loading="lazy"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-light-dark">
