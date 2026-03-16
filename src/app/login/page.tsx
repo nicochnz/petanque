@@ -38,7 +38,7 @@ export default function LoginPage() {
         <div className="max-w-5xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
-            {/* Left: image */}
+            {/* Left: image de login*/}
             <div className="hidden lg:block">
               <div className="relative h-[480px] w-full rounded-2xl overflow-hidden shadow-2xl">
                 <Image
