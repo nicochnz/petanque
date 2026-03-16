@@ -13,9 +13,12 @@ declare global {
   }
 }
 
+type NavigatorWithStandalone = Navigator & { standalone?: boolean };
+
 const isStandalone = () => {
   if (typeof window === 'undefined') return false;
-  return window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+  const nav = window.navigator as NavigatorWithStandalone;
+  return window.matchMedia('(display-mode: standalone)').matches || !!nav.standalone;
 };
 
 export default function PwaInstall() {
