@@ -50,6 +50,10 @@ export default function PwaInstall() {
 
     window.addEventListener('beforeinstallprompt', handler as EventListener);
 
+    // Toujours afficher le bouton, même si l'événement n'est jamais déclenché.
+    // Dans ce cas, on tombera sur le fallback manuel dans doInstall.
+    setCanInstall(true);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handler as EventListener);
     };
