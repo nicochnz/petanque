@@ -54,23 +54,6 @@ export default function HomePage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleInstallClick = () => {
-    if (typeof window === 'undefined') return;
-    const w = window as Window & { deferredPWAInstallPrompt?: unknown };
-    const promptEvent = w.deferredPWAInstallPrompt as { prompt?: () => void } | undefined;
-    if (promptEvent) {
-      promptEvent.prompt?.();
-    } else {
-      alert("Pour installer l'application, ouvrez le menu de votre navigateur puis choisissez « Ajouter à l'écran d'accueil ».");
-    }
-  };
-
-  const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.replace('/login');
-    setShowDropdown(false);
-  };
-
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setShowDropdown(false);
@@ -116,12 +99,6 @@ export default function HomePage() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={handleInstallClick}
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs text-primary px-3 py-1.5 rounded-lg border border-primary/30 hover:bg-primary/5 cursor-pointer"
-            >
-              <span>Installer l&apos;app</span>
-            </button>
-            <button
               onClick={() => setShowFilters(true)}
               className="text-xs text-dark-muted hover:text-dark px-3 py-1.5 rounded-lg hover:bg-light-dark transition-colors cursor-pointer flex items-center gap-1.5"
             >
@@ -165,7 +142,7 @@ export default function HomePage() {
                     </button>
                   )}
                   <button
-                    onClick={handleLogout}
+                    onClick={() => { signOut({ callbackUrl: '/login' }); setShowDropdown(false); }}
                     className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                   >
                     Deconnexion
@@ -368,12 +345,6 @@ export default function HomePage() {
       <footer className="border-t border-light-dark">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between text-[11px] text-dark-muted">
           <span>&copy; 2025 nchiche</span>
-          <button
-            onClick={handleInstallClick}
-            className="inline-flex items-center gap-1.5 text-[11px] text-primary px-3 py-1 rounded-lg border border-primary/30 hover:bg-primary/5 cursor-pointer"
-          >
-            <span>Installer l&apos;app</span>
-          </button>
         </div>
       </footer>
     </main>

@@ -3,7 +3,6 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import 'leaflet/dist/leaflet.css';
 import SessionWrapper from './components/SessionWrapper';
-import PwaInstall from './components/PwaInstall';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,7 +22,6 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
-  manifest: '/manifest.webmanifest',
 };
 
 export default function RootLayout({
@@ -34,10 +32,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
       <body>
-        <SessionWrapper>
-          {children}
-          <PwaInstall />
-        </SessionWrapper>
+        <SessionWrapper>{children}</SessionWrapper>
       </body>
     </html>
   );
