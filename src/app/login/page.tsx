@@ -130,7 +130,7 @@ export default function LoginPage() {
       </main>
 
       <footer className="text-center py-4 text-white/30 text-xs">
-        &copy; 2025 Petanque Club
+        &copy; 2025 nchiche
       </footer>
     </div>
   )
