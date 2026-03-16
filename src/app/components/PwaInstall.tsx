@@ -57,7 +57,11 @@ export default function PwaInstall() {
 
   const doInstall = async () => {
     const promptEvent = window.deferredPWAInstallPrompt;
-    if (!promptEvent) return;
+    if (!promptEvent) {
+      // Fallback: expliquer comment installer manuellement
+      alert("Pour installer l'application, ouvrez le menu de votre navigateur puis choisissez « Ajouter à l'écran d'accueil ».");
+      return;
+    }
 
     promptEvent.prompt();
     const choice = await promptEvent.userChoice;
