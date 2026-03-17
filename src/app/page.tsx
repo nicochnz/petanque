@@ -146,12 +146,15 @@ export default function HomePage() {
                       Mon profil
                     </button>
                   )}
-                  <button
-                    onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                    >
-                          Déconnexion
-                    </button>
+                <button
+  onClick={() => {
+    signOut({ callbackUrl: `${window.location.origin}/login` });
+    setShowDropdown(false);
+  }}
+  className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+>
+  Deconnexion
+</button>
                 </div>
               )}
             </div>
